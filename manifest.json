@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Request catcher",
+  "version": "1.0",
+  "description": "Intercepta y domina el tráfico web... muahaha.",
+  "permissions": ["scripting", "storage", "webRequest"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Request catcher",
+    "default_icon": {
+      "16": "web.png"
+    }
+  },
+  "icons": {
+    "16": "web.png",
+    "32": "web.png",
+    "48": "web.png",
+    "128": "web.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "type": "module"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["catcher.js", "helpers.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
