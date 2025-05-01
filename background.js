@@ -14,11 +14,6 @@ function handleBadgedState() {
     chrome.action.setBadgeBackgroundColor({ color: badgeColor });
     chrome.action.setBadgeText({ text: badgeText });
   });
-  // chrome.storage.local.get("intercepts", (result) => {
-  //   // const activeIntercepts = Object.values(result.intercepts).filter(
-  //   //   (intercept) => intercept.active
-  //   // );
-  // });
 }
 
 function getValueFromStorage(key) {

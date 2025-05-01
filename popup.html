@@ -3,10 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"> -->
     <title>Request catcher</title>
     <style>
-      button{
+      button {
         cursor: pointer;
       }
     </style>
@@ -98,19 +97,22 @@
             <textarea
               id="response"
               name="response"
-              rows="7"
+              rows="5"
               placeholder='{"id": 1, "nombre": "Lucy"}'
               class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-            ></textarea
-            >
+            ></textarea>
           </div>
-
-          <button
-            type="submit"
-            class="block w-fit rounded-md bg-purple-500 p-2 px-4 text-white hover:bg-purple-600"
+          <input type="checkbox" name="active" id="active" checked hidden />
+          <div
+            class="py-2 px-4 w-full flex justify-end bg-white border-t border-gray-300"
           >
-            Guardar
-          </button>
+            <button
+              type="submit"
+              class="block w-fit rounded-md bg-purple-500 p-2 px-4 text-white hover:bg-purple-600"
+            >
+              Guardar
+            </button>
+          </div>
         </form>
       </div>
       <!-- Contenido de la pestaña Acerca -->
@@ -119,7 +121,6 @@
       </div>
     </div>
 
-    <!-- <script src="helpers.js"></script> -->
     <script src="tailwind_4.js"></script>
     <script src="popup.js" type="module"></script>
   </body>

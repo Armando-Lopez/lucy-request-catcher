@@ -54,11 +54,11 @@ function initForm() {
       url: values.url.trim(),
       responseCode: values.responseCode,
       response: values.response.trim() || "{}",
-      active: true,
+      active: values.active === "on",
     };
 
     const prevData = (await getValueFromStorage(INTERCEPTS)) ?? {};
-    const newData = { ...prevData, [`${data.method}-${data.url}`]: data };
+    const newData = { ...prevData, [data.name]: data };
     await setValueInStorage(INTERCEPTS, newData);
     printIntercepts();
     form.reset();
@@ -71,6 +71,10 @@ function initForm() {
 function fillForm(data) {
   const form = document.getElementById("form");
   for (const key in data) {
+    if (key === "active") {
+      form[key].checked = data[key] === "on";
+      continue;
+    }
     if (form[key]) {
       form[key].value = data[key];
     }
@@ -78,7 +82,7 @@ function fillForm(data) {
 }
 function handleSaveDraft() {
   // obtener datos en borrador
-  getValueFromStorage(TEMPORAL_DATA).then((data) => {
+  getValueFromStorage(TEMPORAL_DATA).then((data = "{}") => {
     fillForm(JSON.parse(data));
   });
   // Escuchar cambios en los inputs y guardar en borrador
@@ -97,7 +101,7 @@ function handleSaveDraft() {
 async function toggleEnableIntercept(item) {
   const prevData = ((await getValueFromStorage(INTERCEPTS)) ?? {}) || {};
   const newData = { ...prevData };
-  newData[`${item.method}-${item.url}`].active = !item.active;
+  newData[item.name].active = !item.active;
   await setValueInStorage(INTERCEPTS, newData);
   printIntercepts();
 }
@@ -110,7 +114,7 @@ async function editIntercept(item) {
 async function deleteIntercept(item) {
   const prevData = ((await getValueFromStorage(INTERCEPTS)) ?? {}) || {};
   const newData = { ...prevData };
-  delete newData[`${item.method}-${item.url}`];
+  delete newData[item.name];
   await setValueInStorage(INTERCEPTS, newData);
   printIntercepts();
 }
@@ -123,9 +127,12 @@ async function printIntercepts() {
     container.innerText = "No hay peticiones en la telaraña";
     return;
   }
+  const dataArray = Object.values(data).sort((a, b) =>
+    a.name < b.name ? -1 : 1
+  );
   const fragment = document.createDocumentFragment();
-  for (const key in data) {
-    const item = data[key];
+
+  dataArray.forEach((item) => {
     const res = isValidJSON(item.response)
       ? item.response
       : '{"Error": "JSON de respuesta inválido"}';
@@ -188,6 +195,7 @@ async function printIntercepts() {
       ]);
 
     itemEl.appendTo(fragment);
-  }
+  });
+
   container.appendChild(fragment);
 }
