@@ -122,16 +122,24 @@ async function deleteIntercept(item) {
 async function printIntercepts() {
   const data = (await getValueFromStorage(INTERCEPTS)) || {};
   const container = document.getElementById("intercepts");
-  container.innerHTML = "";
-  if (Object.keys(data).length === 0) {
-    container.innerText = "No hay peticiones en la telaraña";
-    return;
-  }
   const dataArray = Object.values(data).sort((a, b) =>
     a.name < b.name ? -1 : 1
   );
-  const fragment = document.createDocumentFragment();
 
+  if (dataArray.length === 0) {
+    container.innerHTML = `<div class="flex flex-col justify-center items-center h-full">
+      <p>No hay bichos en la telaraña</p>
+      <p>
+        Haz click en
+        <strong class="text-purple-600">"Nuevo/Editar"</strong>
+        para empezar a capturar
+      </p>
+      <span class="text-8xl"> 🕸️ </span>
+    </div>`;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
   dataArray.forEach((item) => {
     const res = isValidJSON(item.response)
       ? item.response
@@ -147,7 +155,7 @@ async function printIntercepts() {
     ]);
     const responseCode = createElement("span").text(item.responseCode);
     const toggleBtn = createElement("button")
-      .text(item.active ? "Liberar" : "Atrapar")
+      .text(item.active ? "Liberar" : "Capturar")
       .attrs({
         class: `px-2 py-1 text-white rounded-md ${
           item.active ? "bg-green-700" : "bg-gray-700"

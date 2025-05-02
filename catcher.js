@@ -35,7 +35,7 @@ window.fetch = async (...args) => {
     console.log("Intercepted fetch: 🕷️🕸️", url, input ?? rest);
     const data = matched.response ?? JSON.stringify({});
     return new Response(data, {
-      status: matched.status ?? 200,
+      status: Number(matched.responseCode ?? 200),
       headers: {
         "Content-Type": "application/json",
       },
@@ -86,7 +86,7 @@ if (axios) {
         }
         return Promise.resolve({
           data: JSON.parse(error.intercept.response) ?? {},
-          status: error.intercept.status ?? 200,
+          status: Number(error.intercept.responseCode ?? 200),
           config: error.config,
           statusText: "",
           headers: {
