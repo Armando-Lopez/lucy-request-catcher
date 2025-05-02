@@ -1,13 +1,13 @@
 export function getValueFromStorage(key) {
   return new Promise((resolve) => {
     chrome.storage.local.get(key, (result) => {
-      resolve(result[key]);
+      resolve(result[key] ? JSON.parse(result[key]) : undefined);
     });
   });
 }
 export function setValueInStorage(key, value) {
   return new Promise((resolve) => {
-    chrome.storage.local.set({ [key]: value }, () => {
+    chrome.storage.local.set({ [key]: JSON.stringify(value) }, () => {
       resolve();
     });
   });
@@ -19,7 +19,7 @@ export function urlMatchesPattern(url, pattern) {
   const regex = new RegExp("^" + regexStr + "$");
   return regex.test(url);
 }
- 
+
 export function onMessage(name, callback) {
   window.addEventListener("message", (event) => {
     if (event.source !== window || event.origin !== window.location.origin)
@@ -30,7 +30,7 @@ export function onMessage(name, callback) {
     }
   });
 }
- 
+
 export function sendMessage(name, value) {
   window.postMessage({ name, value }, window.location.origin);
 }

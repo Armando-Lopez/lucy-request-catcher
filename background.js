@@ -20,7 +20,7 @@ async function handleBadgedState() {
 function getValueFromStorage(key) {
   return new Promise((resolve) => {
     chrome.storage.local.get(key, (result) => {
-      resolve(result[key]);
+      resolve(result[key] ? JSON.parse(result[key]) : undefined);
     });
   });
 }

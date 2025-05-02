@@ -50,7 +50,7 @@ function getFormData() {
     name: values.name,
     method: values.method,
     url: values.url.trim(),
-    responseCode: values.responseCode,
+    responseCode: parseInt(values.responseCode),
     response: JSON.parse(values.response.trim() || "{}"),
     active: values.active === "on",
   };

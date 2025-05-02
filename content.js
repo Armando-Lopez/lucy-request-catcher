@@ -14,7 +14,7 @@ chrome.storage.onChanged.addListener(async () => {
   sendIntercepts();
 });
 function sendIntercepts() {
-  getValueFromStorage("intercepts").then((intercepts = {}) => {
+  getValueFromStorage("intercepts").then((intercepts = []) => {
     sendMessage("INTERCEPTS_CHANGED", intercepts);
   });
 }
@@ -26,7 +26,7 @@ function sendMessage(name, value) {
 function getValueFromStorage(key) {
   return new Promise((resolve) => {
     chrome.storage.local.get(key, (result) => {
-      resolve(result[key]);
+      resolve(result[key] ? JSON.parse(result[key]) : undefined);
     });
   });
 }

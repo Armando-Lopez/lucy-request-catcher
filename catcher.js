@@ -1,13 +1,13 @@
 import { urlMatchesPattern, onMessage } from "./helpers.js";
 
 let savedIntercepts = [];
-onMessage("INTERCEPTS_CHANGED", (data) => {
-  savedIntercepts = Object.values(data);
+onMessage("INTERCEPTS_CHANGED", (data = []) => {
+  savedIntercepts = data;
 });
 
-function findIntercept(url, method) {
+function findIntercept(url, method = "GET") {
   return savedIntercepts.find((item) => {
-    try { 
+    try {
       if (!item.active || item.method.toUpperCase() !== method.toUpperCase())
         return false;
       const hasMatch = urlMatchesPattern(url, item.url);
@@ -27,7 +27,7 @@ window.fetch = async (...args) => {
     const url = typeof input === "string" ? input : input?.url ?? "";
     if (!url) return originalFetch(...args);
 
-    const method = input.method ?? rest.method;
+    const method = input?.method ?? rest?.method;
     const matched = findIntercept(url, method);
     if (!matched) {
       return originalFetch(...args);
