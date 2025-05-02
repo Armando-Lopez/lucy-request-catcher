@@ -4,16 +4,17 @@ chrome.storage.onChanged.addListener(() => {
 
 handleBadgedState();
 
-function handleBadgedState() {
-  getValueFromStorage("intercepts").then((intercepts = {}) => {
-    const activeIntercepts = Object.values(intercepts).filter(
-      (intercept) => intercept.active
-    ).length;
-    const badgeText = activeIntercepts > 0 ? activeIntercepts.toString() : "";
-    const badgeColor = activeIntercepts > 0 ? "#6E11B0" : "#000000";
-    chrome.action.setBadgeBackgroundColor({ color: badgeColor });
-    chrome.action.setBadgeText({ text: badgeText });
-  });
+async function handleBadgedState() {
+  const intercepts = (await getValueFromStorage("intercepts")) ?? [];
+
+  const activeIntercepts = intercepts.filter(
+    (intercept) => intercept.active
+  ).length;
+
+  const badgeText = activeIntercepts > 0 ? activeIntercepts.toString() : "";
+  const badgeColor = activeIntercepts > 0 ? "#6E11B0" : "#000000";
+  chrome.action.setBadgeBackgroundColor({ color: badgeColor });
+  chrome.action.setBadgeText({ text: badgeText });
 }
 
 function getValueFromStorage(key) {

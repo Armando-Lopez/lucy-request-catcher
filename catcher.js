@@ -33,7 +33,7 @@ window.fetch = async (...args) => {
       return originalFetch(...args);
     }
     console.log("Intercepted fetch: 🕷️🕸️", url, input ?? rest);
-    const data = matched.response ?? JSON.stringify({});
+    const data = JSON.stringify(matched.response ?? {});
     return new Response(data, {
       status: Number(matched.responseCode ?? 200),
       headers: {
@@ -85,7 +85,7 @@ if (axios) {
           return Promise.reject(error);
         }
         return Promise.resolve({
-          data: JSON.parse(error.intercept.response) ?? {},
+          data: error.intercept.response ?? {},
           status: Number(error.intercept.responseCode ?? 200),
           config: error.config,
           statusText: "",

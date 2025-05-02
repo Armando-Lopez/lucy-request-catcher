@@ -2,7 +2,6 @@ import {
   createElement,
   getValueFromStorage,
   setValueInStorage,
-  isValidJSON,
 } from "./helpers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initForm();
   printIntercepts();
   handleSaveDraft();
+  activeExportIntercepts();
+  activeImportIntercepts();
 });
 
 const INTERCEPTS = "intercepts";
@@ -42,91 +43,105 @@ function initTabs() {
   tabs[0].click();
 }
 
+function getFormData() {
+  const formData = new FormData(document.getElementById("form"));
+  const values = Object.fromEntries(formData);
+  return {
+    name: values.name,
+    method: values.method,
+    url: values.url.trim(),
+    responseCode: values.responseCode,
+    response: JSON.parse(values.response.trim() || "{}"),
+    active: values.active === "on",
+  };
+}
+
 function initForm() {
   const form = document.getElementById("form");
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const values = Object.fromEntries(formData);
-    const data = {
-      name: values.name,
-      method: values.method,
-      url: values.url.trim(),
-      responseCode: values.responseCode,
-      response: values.response.trim() || "{}",
-      active: values.active === "on",
-    };
-
-    const prevData = (await getValueFromStorage(INTERCEPTS)) ?? {};
-    const newData = { ...prevData, [data.name]: data };
-    await setValueInStorage(INTERCEPTS, newData);
-    printIntercepts();
+    const dataToSave = getFormData();
+    const dataList = (await getValueFromStorage(INTERCEPTS)) ?? [];
+    const index = dataList.findIndex((i) => i.name === dataToSave.name);
+    if (index !== -1) {
+      // update if name already exists
+      dataList[index] = dataToSave;
+    } else {
+      // add if name does not exist
+      dataList.push(dataToSave);
+    }
+    await setValueInStorage(INTERCEPTS, dataList);
     form.reset();
     document.querySelectorAll(".tab-btn")[0].click();
-
-    setValueInStorage(TEMPORAL_DATA, JSON.stringify({}));
+    printIntercepts();
+    setValueInStorage(TEMPORAL_DATA, {});
   });
 }
 
 function fillForm(data) {
   const form = document.getElementById("form");
   for (const key in data) {
-    if (key === "active") {
-      form[key].checked = data[key] === "on";
+    const input = form[key];
+    const value = data[key];
+    if (!input) {
       continue;
     }
-    if (form[key]) {
-      form[key].value = data[key];
+    if (key === "active") {
+      input.checked = value === "on";
+      continue;
+    }
+    if (key === "response") {
+      input.value = JSON.stringify(value, null, 2);
+    } else {
+      input.value = value;
     }
   }
 }
+
 function handleSaveDraft() {
   // obtener datos en borrador
-  getValueFromStorage(TEMPORAL_DATA).then((data = "{}") => {
-    fillForm(JSON.parse(data));
+  getValueFromStorage(TEMPORAL_DATA).then((data = {}) => {
+    fillForm(data);
   });
   // Escuchar cambios en los inputs y guardar en borrador
   const inputs = document.querySelectorAll(".control");
   inputs.forEach((input) => {
-    input.addEventListener("input", (ev) => {
-      const form = document.getElementById("form");
-      const temporalData = JSON.stringify(
-        Object.fromEntries(new FormData(form))
-      );
-      setValueInStorage(TEMPORAL_DATA, temporalData);
+    input.addEventListener("input", () => {
+      setValueInStorage(TEMPORAL_DATA, getFormData());
     });
   });
 }
 
-async function toggleEnableIntercept(item) {
-  const prevData = ((await getValueFromStorage(INTERCEPTS)) ?? {}) || {};
-  const newData = { ...prevData };
-  newData[item.name].active = !item.active;
+async function toggleEnableIntercept(selectedItem) {
+  const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+  const newData = data.map((item) =>
+    item.name === selectedItem.name
+      ? { ...item, active: !selectedItem.active }
+      : item
+  );
   await setValueInStorage(INTERCEPTS, newData);
   printIntercepts();
 }
 
-async function editIntercept(item) {
+async function goToEditIntercept(selectedItem) {
   document.querySelectorAll(".tab-btn")[1].click();
-  fillForm(item);
+  fillForm(selectedItem);
 }
 
-async function deleteIntercept(item) {
-  const prevData = ((await getValueFromStorage(INTERCEPTS)) ?? {}) || {};
-  const newData = { ...prevData };
-  delete newData[item.name];
+async function deleteIntercept(selectedItem) {
+  const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+  const newData = data.filter((item) => item.name !== selectedItem.name);
   await setValueInStorage(INTERCEPTS, newData);
   printIntercepts();
 }
 
 async function printIntercepts() {
-  const data = (await getValueFromStorage(INTERCEPTS)) || {};
-  const container = document.getElementById("intercepts");
-  const dataArray = Object.values(data).sort((a, b) =>
-    a.name < b.name ? -1 : 1
+  const data = ((await getValueFromStorage(INTERCEPTS)) || []).toSorted(
+    (a, b) => (a.name < b.name ? -1 : 1)
   );
-
-  if (dataArray.length === 0) {
+  const container = document.getElementById("intercepts");
+  container.innerHTML = "";
+  if (data.length === 0) {
     container.innerHTML = `<div class="flex flex-col justify-center items-center h-full">
       <p>No hay bichos en la telaraña</p>
       <p>
@@ -140,15 +155,9 @@ async function printIntercepts() {
   }
 
   const fragment = document.createDocumentFragment();
-  dataArray.forEach((item) => {
-    const res = isValidJSON(item.response)
-      ? item.response
-      : '{"Error": "JSON de respuesta inválido"}';
-    const prettyResponse = item.response
-      ? JSON.stringify(JSON.parse(res), null, 2)
-      : "";
-
+  data.forEach((item) => {
     const methodName = createElement("strong").text(item.method);
+    const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
       createElement("summary").text(item.url),
       createElement("pre").text(prettyResponse),
@@ -170,7 +179,7 @@ async function printIntercepts() {
         class: "bg-blue-500 px-2 py-1 text-white rounded-md",
       })
       .events({
-        click: () => editIntercept(item),
+        click: () => goToEditIntercept(item),
       });
     const deleteBtn = createElement("button")
       .text("Borrar")
@@ -206,4 +215,37 @@ async function printIntercepts() {
   });
 
   container.appendChild(fragment);
+}
+
+function activeExportIntercepts() {
+  document.getElementById("exportBugs").addEventListener("click", async () => {
+    const data = (await getValueFromStorage(INTERCEPTS)) || [];
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bichos_export.json";
+    a.click();
+  });
+}
+
+function activeImportIntercepts() {
+  document.getElementById("importBugs").addEventListener("click", async () => {
+    const inputFile = document.getElementById("importBugsFile");
+    inputFile.click();
+    inputFile.addEventListener("change", async (ev) => {
+      try {
+        const file = ev.target.files[0];
+        if (!file) return;
+        const content = await file.text();
+        const data = JSON.parse(content);
+        await setValueInStorage(INTERCEPTS, data);
+        document.querySelectorAll(".tab-btn")[0].click();
+        printIntercepts();
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  });
 }
