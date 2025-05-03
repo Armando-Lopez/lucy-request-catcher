@@ -156,7 +156,8 @@ async function printIntercepts() {
 
   const fragment = document.createDocumentFragment();
   data.forEach((item) => {
-    const methodName = createElement("strong").text(item.method);
+    const name = createElement("strong").text(item.name)
+    const method = createElement("span").text(item.method);
     const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
       createElement("summary").text(item.url),
@@ -196,12 +197,12 @@ async function printIntercepts() {
     const itemEl = createElement("div")
       .attrs({ class: "border-b border-purple-300 p-2" })
       .children([
-        createElement("span").text(item.name),
+        name,
         createElement("div")
           .attrs({ class: "flex items-center" })
           .children([
             bugMethod[item.method],
-            methodName,
+            method,
             " - ",
             responseCode,
             actions,

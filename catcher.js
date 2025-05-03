@@ -1,15 +1,5 @@
 import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 (function () {
-  // const code = `
-  //     window.findIntercept = ${findIntercept.toString()};
-  //   `;
-  // const injected = document.createElement("script");
-  // injected.textContent = code;
-  // (document.head || document.documentElement).appendChild(injected);
-  // // injected.remove();
-  // setTimeout(() => {
-  // console.log(chrome.storage.local);
-
   let savedIntercepts = [];
   sendMessage("GET_INTERCEPTS_ASK");
   onMessage("INTERCEPTS_CHANGED", (data = []) => {
@@ -17,8 +7,6 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
   });
 
   function findIntercept(url, method = "GET") {
-    // console.log("findIntercept", url, method, savedIntercepts);
-
     return savedIntercepts.find((item) => {
       try {
         if (!item.active || item.method.toUpperCase() !== method.toUpperCase())
@@ -114,10 +102,10 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
   }
 
   // Interceptar XHR
+
   const OriginalXHR = window.XMLHttpRequest;
-  console.log("OriginalXHR", window.XMLHttpRequest.toString());
-  
-  class FakeXHR {
+
+  class LucyXHR {
     constructor() {
       this.xhr = new OriginalXHR();
       this._method = "";
@@ -128,6 +116,26 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       this.onreadystatechange = null;
       this.onload = null;
       this.onerror = null;
+
+      // ⚠️ Importante: devolver un Proxy al final
+      // return new Proxy(this, {
+      //   get(target, prop) {
+      //     if (prop in target) return target[prop];
+      //     if (prop in target.xhr) {
+      //       const value = target.xhr[prop];
+      //       return typeof value === "function" ? value.bind(target.xhr) : value;
+      //     }
+      //     return undefined;
+      //   },
+      //   set(target, prop, value) {
+      //     if (prop in target) {
+      //       target[prop] = value;
+      //     } else {
+      //       target.xhr[prop] = value;
+      //     }
+      //     return true;
+      //   },
+      // });
     }
     open(method, url, ...rest) {
       this._method = method.toUpperCase();
@@ -147,7 +155,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
             value: Number(matched.responseCode ?? 200),
           });
           Object.defineProperty(this, "responseText", { value: fakeResponse });
-
+          Object.defineProperty(this, "response", { value: fakeResponse });
           this.onreadystatechange?.();
           this.onload?.();
           this._dispatchEvent("load");
@@ -165,15 +173,33 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
         this.onreadystatechange?.apply(this, ...args);
         this._dispatchEvent("readystatechange");
       };
-
       this.xhr.onload = (...args) => {
         this.onload?.apply(this, ...args);
         this._dispatchEvent("load");
       };
-
       this.xhr.onerror = (...args) => {
         this.onerror?.apply(this, ...args);
         this._dispatchEvent("error");
+      };
+      this.xhr.onabort = (...args) => {
+        this.onabort?.apply(this, ...args);
+        this._dispatchEvent("abort");
+      };
+      this.xhr.ontimeout = (...args) => {
+        this.ontimeout?.apply(this, ...args);
+        this._dispatchEvent("timeout");
+      };
+      this.xhr.onloadstart = (...args) => {
+        this.onloadstart?.apply(this, ...args);
+        this._dispatchEvent("loadstart");
+      };
+      this.xhr.onprogress = (...args) => {
+        this.onprogress?.apply(this, ...args);
+        this._dispatchEvent("progress");
+      };
+      this.xhr.onloadend = (...args) => {
+        this.onloadend?.apply(this, ...args);
+        this._dispatchEvent("loadend");
       };
 
       this.xhr.send(body);
@@ -194,19 +220,31 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
   }
 
   // Proxy properties
+  Object.defineProperty(LucyXHR.prototype, "statusText", {
+    get() {
+      return this.xhr.statusText;
+    },
+  });
+
+  Object.defineProperty(LucyXHR.prototype, "responseURL", {
+    get() {
+      return this.xhr.responseURL;
+    },
+  });
+
   [
     "getAllResponseHeaders",
     "getResponseHeader",
     "abort",
     "overrideMimeType",
   ].forEach((fn) => {
-    FakeXHR.prototype[fn] = function (...args) {
+    LucyXHR.prototype[fn] = function (...args) {
       return this.xhr[fn](...args);
     };
   });
 
   ["responseType", "withCredentials"].forEach((prop) => {
-    Object.defineProperty(FakeXHR.prototype, prop, {
+    Object.defineProperty(LucyXHR.prototype, prop, {
       get() {
         return this.xhr[prop];
       },
@@ -216,177 +254,11 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
     });
   });
 
-  Object.defineProperty(FakeXHR.prototype, "upload", {
+  Object.defineProperty(LucyXHR.prototype, "upload", {
     get() {
       return this.xhr.upload;
     },
   });
 
-  window.XMLHttpRequest = FakeXHR;
-  console.log("window.XMLHttpRequest", window.XMLHttpRequest);
-  
-  
+  window.XMLHttpRequest = LucyXHR;
 })();
-
-// Interceptar XHR
-// class FakeXHR {
-//   constructor() {
-//     this.readyState = 0;
-//     this.status = 0;
-//     this.responseText = "";
-//     this.onreadystatechange = null;
-//     this.onload = null;
-//     this._method = "";
-//     this._url = "";
-//   }
-
-//   open(method, url) {
-//     // console.log("OPNEN", method, url);
-
-//     this._method = method;
-//     this._url = url;
-//   }
-
-//   send() {
-//     // console.log(findIntercept);
-
-//     const matched = findIntercept?.(this._url, this._method);
-//     console.log(
-//       "Lucy intenta atrapar un XHR 🕷️🕸️:",
-//       this._url,
-//       this._method,
-//       matched
-//     );
-
-//     if (matched) {
-//       console.log("Lucy atrapó un XHR 🕸️", this._url);
-//       setTimeout(() => {
-//         this.readyState = 4;
-//         this.status = Number(matched.responseCode ?? 200);
-//         this.responseText = JSON.stringify(matched.response ?? {});
-//         this.onreadystatechange?.();
-//         this.onload?.();
-//       }, 0);
-//     }
-//   }
-
-//   // Implementar más métodos o propiedades si tu app los usa
-// }
-
-// window.XMLHttpRequest = FakeXHR;
-
-// return;
-// const OriginalXHR = window.XMLHttpRequest;
-
-// function InterceptedXHR() {
-//   const xhr = new OriginalXHR();
-
-//   let method = "";
-//   let url = "";
-
-//   const open = xhr.open;
-//   xhr.open = function (_method, _url, ...rest) {
-//     method = _method;
-//     url = _url;
-//     return open.call(xhr, _method, _url, ...rest);
-//   };
-
-//   const send = xhr.send;
-//   xhr.send = function (body) {
-//     const matched = findIntercept?.(url, method);
-//     if (matched) {
-//       console.log("🕷️ Intercepted XHR:", url);
-
-//       setTimeout(() => {
-//         Object.defineProperty(xhr, "readyState", { value: 4 });
-//         Object.defineProperty(xhr, "status", {
-//           value: Number(matched.responseCode ?? 200),
-//         });
-//         Object.defineProperty(xhr, "responseText", {
-//           value: JSON.stringify(matched.response ?? {}),
-//         });
-
-//         xhr.onreadystatechange?.();
-//         xhr.onload?.();
-//       }, 0);
-
-//       return; // Cancel real request
-//     }
-
-//     return send.call(xhr, body); // Proceed as normal
-//   };
-
-//   return xhr;
-// }
-
-// window.XMLHttpRequest = InterceptedXHR;
-
-// return;
-// // const OriginalXHR = window.XMLHttpRequest;
-
-// function CustomXHR() {
-//   const xhr = new OriginalXHR();
-//   const self = this;
-
-//   this._url = "";
-//   this._method = "";
-
-//   for (let prop in xhr) {
-//     if (typeof xhr[prop] === "function") {
-//       this[prop] = xhr[prop].bind(xhr);
-//     } else {
-//       Object.defineProperty(this, prop, {
-//         get() {
-//           return xhr[prop];
-//         },
-//         set(val) {
-//           xhr[prop] = val;
-//         },
-//       });
-//     }
-//   }
-
-//   this.open = function (method, url, ...rest) {
-//     self._method = method;
-//     self._url = url;
-//     return xhr.open(method, url, ...rest);
-//   };
-
-//   this.send = function (...args) {
-//     const matched = findIntercept(self._url, self._method);
-//     console.log(
-//       "Lucy intenta atrapar un XHR 🕷️🕸️:",
-//       self._url,
-//       self._method,
-//       matched
-//     );
-
-//     if (matched) {
-//       console.log("Lucy atrapó un XHR 🕷️🕸️:", self._url);
-//       // setTimeout(() => {
-//       // xhr.readyState = 4;
-//       Object.defineProperty(xhr, "readyState", {
-//         value: 4,
-//       });
-//       // xhr.status = Number(matched.responseCode ?? 200);
-//       Object.defineProperty(xhr, "status", {
-//         value: Number(matched.responseCode ?? 200),
-//       });
-//       // xhr.responseText = JSON.stringify(matched.response ?? {});
-//       Object.defineProperty(xhr, "responseText", {
-//         value: JSON.stringify(matched.response ?? {}),
-//       });
-
-//       self.onreadystatechange?.();
-//       self.onload?.();
-//       // }, 10);
-
-//       return;
-//     }
-
-//     return xhr.send(...args);
-//   };
-// }
-// window.XMLHttpRequest = CustomXHR;
-// })();
-// });
