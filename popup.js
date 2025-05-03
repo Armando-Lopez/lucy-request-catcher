@@ -60,17 +60,17 @@ function initForm() {
   const form = document.getElementById("form");
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const dataToSave = getFormData();
-    const dataList = (await getValueFromStorage(INTERCEPTS)) ?? [];
-    const index = dataList.findIndex((i) => i.name === dataToSave.name);
+    const itemToSave = getFormData();
+    const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+    const index = data.findIndex((i) => i.name === itemToSave.name);
     if (index !== -1) {
       // update if name already exists
-      dataList[index] = dataToSave;
+      data[index] = itemToSave;
     } else {
       // add if name does not exist
-      dataList.push(dataToSave);
+      data.push(itemToSave);
     }
-    await setValueInStorage(INTERCEPTS, dataList);
+    await setValueInStorage(INTERCEPTS, data);
     form.reset();
     document.querySelectorAll(".tab-btn")[0].click();
     printIntercepts();

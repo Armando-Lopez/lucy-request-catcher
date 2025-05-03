@@ -1,0 +1,39 @@
+[
+  {
+    "active": true,
+    "name": "user 1",
+    "method": "GET",
+    "url": "https://jsonplaceholder.typicode.com/users/1",
+    "responseCode": 200,
+    "response": {
+      "id": 1,
+      "name": "Leanne Graham",
+      "username": "Bret",
+      "email": "Sincere@april.biz",
+      "phone": "1-770-736-8031 x56442"
+    }
+  },
+  {
+    "active": false,
+    "name": "save post",
+    "method": "POST",
+    "url": "https://jsonplaceholder.typicode.com/posts",
+    "responseCode": 201,
+    "response": {
+      "userId": 1,
+      "id": 1,
+      "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+      "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+    }
+  },
+  {
+    "active": false,
+    "name": "user no found",
+    "method": "GET",
+    "url": "https://jsonplaceholder.typicode.com/users/555",
+    "responseCode": 404,
+    "response": {
+      "message": "Not Found"
+    }
+  }
+]

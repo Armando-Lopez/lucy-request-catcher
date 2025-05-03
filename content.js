@@ -1,5 +1,3 @@
-// import "./helpers.js";
-
 const script = document.createElement("script");
 script.type = "module";
 script.src = chrome.runtime.getURL("catcher.js");
