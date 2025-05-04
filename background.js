@@ -11,7 +11,7 @@ async function handleBadgedState() {
     (intercept) => intercept.active
   ).length;
 
-  const badgeText = activeIntercepts > 0 ? activeIntercepts.toString() : "";
+  const badgeText = activeIntercepts.toString();
   const badgeColor = activeIntercepts > 0 ? "#6E11B0" : "#000000";
   chrome.action.setBadgeBackgroundColor({ color: badgeColor });
   chrome.action.setBadgeText({ text: badgeText });

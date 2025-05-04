@@ -1,6 +1,6 @@
 const script = document.createElement("script");
 script.type = "module";
-script.src = chrome.runtime.getURL("catcher.js");
+script.src = chrome.runtime.getURL("lucy-web.js");
 script.onload = () => script.remove(); // Limpieza opcional
 (document.head || document.documentElement).appendChild(script);
 

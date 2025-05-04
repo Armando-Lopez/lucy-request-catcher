@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Request catcher",
+  "name": "Lucy - Request catcher",
   "version": "1.0",
-  "description": "Intercepta y domina el tráfico web... muahaha.",
+  "description": "Lucy es una araña que vive en tu navegador, tejiendo telarañas y capturando peticiones HTTP",
   "permissions": ["scripting", "storage", "webRequest"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -10,16 +10,16 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Request catcher",
+    "default_title": "Lucy - Request catcher",
     "default_icon": {
-      "16": "web.png"
+      "16": "icon.png"
     }
   },
   "icons": {
-    "16": "web.png",
-    "32": "web.png",
-    "48": "web.png",
-    "128": "web.png"
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
   "content_scripts": [
     {
@@ -31,7 +31,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["catcher.js", "helpers.js"],
+      "resources": ["lucy-web.js", "helpers.js"],
       "matches": ["<all_urls>"]
     }
   ]

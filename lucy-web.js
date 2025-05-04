@@ -143,66 +143,72 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       this.xhr.open(method, url, ...rest);
     }
     send(body) {
-      const matched = findIntercept?.(this._url, this._method);
-      if (matched) {
-        console.log("🕷️ Intercepted XHR:", this._url);
+      try {
+        const matched = findIntercept?.(this._url, this._method);
+        if (matched) {
+          console.log("🕷️ Intercepted XHR:", this._url);
 
-        // Simular respuesta asíncrona
-        setTimeout(() => {
-          const fakeResponse = JSON.stringify(matched.response ?? {});
-          Object.defineProperty(this, "readyState", { value: 4 });
-          Object.defineProperty(this, "status", {
-            value: Number(matched.responseCode ?? 200),
-          });
-          Object.defineProperty(this, "responseText", { value: fakeResponse });
-          Object.defineProperty(this, "response", { value: fakeResponse });
-          this.onreadystatechange?.();
-          this.onload?.();
-          this._dispatchEvent("load");
+          // Simular respuesta asíncrona
+          setTimeout(() => {
+            const fakeResponse = JSON.stringify(matched.response ?? {});
+            Object.defineProperty(this, "readyState", { value: 4 });
+            Object.defineProperty(this, "status", {
+              value: Number(matched.responseCode ?? 200),
+            });
+            Object.defineProperty(this, "responseText", {
+              value: fakeResponse,
+            });
+            Object.defineProperty(this, "response", { value: fakeResponse });
+            this.onreadystatechange?.();
+            this.onload?.();
+            this._dispatchEvent("load");
+            this._dispatchEvent("readystatechange");
+          }, 0);
+
+          return;
+        }
+
+        // Si no hay match, seguir normalmente
+        this.xhr.onreadystatechange = (...args) => {
+          this.readyState = this.xhr.readyState;
+          this.status = this.xhr.status;
+          this.responseText = this.xhr.responseText;
+          this.onreadystatechange?.apply(this, ...args);
           this._dispatchEvent("readystatechange");
-        }, 0);
+        };
+        this.xhr.onload = (...args) => {
+          this.onload?.apply(this, ...args);
+          this._dispatchEvent("load");
+        };
+        this.xhr.onerror = (...args) => {
+          this.onerror?.apply(this, ...args);
+          this._dispatchEvent("error");
+        };
+        this.xhr.onabort = (...args) => {
+          this.onabort?.apply(this, ...args);
+          this._dispatchEvent("abort");
+        };
+        this.xhr.ontimeout = (...args) => {
+          this.ontimeout?.apply(this, ...args);
+          this._dispatchEvent("timeout");
+        };
+        // this.xhr.onloadstart = (...args) => {
+        //   this.onloadstart?.apply(this, ...args);
+        //   this._dispatchEvent("loadstart");
+        // };
+        this.xhr.onprogress = (...args) => {
+          this.onprogress?.apply(this, ...args);
+          this._dispatchEvent("progress");
+        };
+        this.xhr.onloadend = (...args) => {
+          this.onloadend?.apply(this, ...args);
+          this._dispatchEvent("loadend");
+        };
 
-        return;
+        this.xhr.send(body);
+      } catch (e) {
+        console.error(e);
       }
-
-      // Si no hay match, seguir normalmente
-      this.xhr.onreadystatechange = (...args) => {
-        this.readyState = this.xhr.readyState;
-        this.status = this.xhr.status;
-        this.responseText = this.xhr.responseText;
-        this.onreadystatechange?.apply(this, ...args);
-        this._dispatchEvent("readystatechange");
-      };
-      this.xhr.onload = (...args) => {
-        this.onload?.apply(this, ...args);
-        this._dispatchEvent("load");
-      };
-      this.xhr.onerror = (...args) => {
-        this.onerror?.apply(this, ...args);
-        this._dispatchEvent("error");
-      };
-      this.xhr.onabort = (...args) => {
-        this.onabort?.apply(this, ...args);
-        this._dispatchEvent("abort");
-      };
-      this.xhr.ontimeout = (...args) => {
-        this.ontimeout?.apply(this, ...args);
-        this._dispatchEvent("timeout");
-      };
-      this.xhr.onloadstart = (...args) => {
-        this.onloadstart?.apply(this, ...args);
-        this._dispatchEvent("loadstart");
-      };
-      this.xhr.onprogress = (...args) => {
-        this.onprogress?.apply(this, ...args);
-        this._dispatchEvent("progress");
-      };
-      this.xhr.onloadend = (...args) => {
-        this.onloadend?.apply(this, ...args);
-        this._dispatchEvent("loadend");
-      };
-
-      this.xhr.send(body);
     }
     setRequestHeader(...args) {
       return this.xhr.setRequestHeader(...args);

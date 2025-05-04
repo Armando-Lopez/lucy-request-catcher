@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Request catcher</title>
+    <title>Lucy - Request catcher</title>
     <style>
       button {
         cursor: pointer;
@@ -16,37 +16,40 @@
   >
     <div class="h-full pt-2 text-base flex flex-col">
       <div class="px-4 flex">
-        <h2 class="mb-5 text-3xl text-purple-800">Request catcher</h2>
-        <span class="ml-auto text-5xl">🕷️</span>
+        <h1 class="mb-5 text-2xl text-purple-800 font-bold">
+          Lucy - Request catcher
+        </h1>
+        <span class="ml-auto text-5xl rotate-180">🕷️</span>
       </div>
       <!-- Pestañas -->
-      <div class="flex px-4 border-b border-purple-300">
+      <div class="flex border-b border-purple-300">
         <button
-          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-600 border-b-2 border-transparent focus:outline-none"
+          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-700 border-b-2 border-transparent focus:outline-none"
           data-tab="tab1"
         >
-          Bichos
+          Telaraña
         </button>
         <button
-          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-600 border-b-2 border-transparent focus:outline-none"
+          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-700 border-b-2 border-transparent focus:outline-none"
           data-tab="tab2"
         >
           Nuevo/Editar
         </button>
         <button
-          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-600 border-b-2 border-transparent focus:outline-none"
+          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-700 border-b-2 border-transparent focus:outline-none"
           data-tab="tab3"
         >
           Opciones
         </button>
         <button
-          class="ml-auto tab-btn px-4 py-2 text-sm font-medium hover:text-purple-600 border-b-2 border-transparent focus:outline-none"
+          class="tab-btn px-4 py-2 text-sm font-medium hover:text-purple-700 border-b-2 border-transparent focus:outline-none"
           data-tab="tab4"
         >
           Acerca
         </button>
       </div>
-      <div class="flex-1 overflow-y-auto px-4 pt-3">
+      <!-- Contenido -->
+      <div class="flex-1 overflow-y-auto px-5 p-3 mb-1">
         <!-- Contenido de la pestaña General -->
         <div class="tab-content h-full" id="tab1">
           <div id="intercepts" class="h-full space-y-4"></div>
@@ -112,7 +115,7 @@
                 id="response"
                 name="response"
                 rows="5"
-                placeholder='{"id": 1, "nombre": "Lucy"}'
+                placeholder='{"id": 1, "name": "Lucy"}'
                 class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
               ></textarea>
             </div>
@@ -129,7 +132,20 @@
           </form>
         </div>
         <!-- Contenido de la pestaña Opciones -->
-        <div class="tab-content h-full hidden" id="tab3">
+        <div class="tab-content h-full space-y-4 hidden" id="tab3">
+          <!-- <div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" />
+              <div
+              class="w-11 h-6 bg-gray-300 peer-checked:bg-purple-500 rounded-full relative transition-colors duration-300"
+              >
+            </div>
+            <div
+            class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"
+            ></div>
+            <p class="ml-3">Mostrar logs en la consola</p>
+          </label>
+          </div> -->
           <div class="flex gap-2">
             <button
               id="exportBugs"
@@ -147,12 +163,289 @@
           </div>
         </div>
         <!-- Contenido de la pestaña Acerca -->
-        <div class="tab-content h-full hidden" id="tab4">
-          Hecho con ❤️ por Diego López.
+        <div class="tab-content h-full hidden space-y-4" id="tab4">
+          <div id="intro">
+            <h3 class="text-xl font-bold flex items-center">
+              Hola, soy Lucy la araña
+              <span class="text-5xl rotate-180">🕷️</span>
+            </h3>
+            <p>
+              Soy Lucy, tu amigable araña del código. Mi trabajo es muy simple
+              (y un poco pegajoso): me encargo de atrapar peticiones HTTP
+              (bichos) en mi telaraña digital antes de que lleguen al servidor.
+            </p>
+            <strong>Mis objetivos son claros:</strong>
+            <ul class="list-disc list-inside pl-4">
+              <li>
+                🎯 Interceptar peticiones
+                <span class="text-purple-700">Fetch, Axios y XHR</span>.
+              </li>
+              <li>
+                🕸️ Revisar si alguna coincide con mis hilos (las reglas que me
+                configuras).
+              </li>
+              <li>
+                🐞 Si encuentro un bug que encaja... ¡zas! Lo atrapo y devuelvo
+                una respuesta falsa.
+              </li>
+              <li>
+                🕶️ Si no, dejo que siga su camino como si nada hubiera pasado.
+              </li>
+            </ul>
+            <p>
+              Y sí, puedes hablarme con configuraciones —soy una araña moderna,
+              ¡entiendo <span class="text-yellow-700">JavaScript</span>!
+            </p>
+          </div>
+          <hr />
+          <div id="create-edit">
+            <h4 class="text-lg font-bold flex items-center">
+              🧵 Registrar un bicho en la telaraña
+            </h4>
+            <p>
+              Cuando quieras enseñarme a atrapar un bicho, sólo tienes que
+              llenar mi formulario de
+              <strong class="text-purple-700">Nuevo/Editar</strong>. Haré una
+              telaraña para él.
+            </p>
+            <strong>Campos:</strong>
+            <ul class="list-disc list-inside pl-4">
+              <li>
+                📝 Nombre
+                <br />
+                Es solo para ti. Así recuerdas qué bicho atrapaste.
+                <br />
+                Ej: "Intercept de usuario"
+              </li>
+              <li>
+                🌐 URL
+                <br />
+                Aquí me dices qué URL debo vigilar
+                <br />
+                Ej: https://api.ejemplo.com/api/user/1
+                <br />
+                Si la URL tiene parámetros, puedes usar llaves
+                (<strong>{}</strong>) para indicar donde van los valores
+                dinámicos, como numeros.
+                <br />
+                Ej: https://api.ejemplo.com/api/user/{id}
+              </li>
+              <li>
+                📬 Método HTTP <br />
+                ¿Qué tipo de petición debo atrapar?
+                <br />Puedes elegir entre:
+                <strong class="text-purple-700"
+                  >GET, POST, PUT, DELETE, PATCH</strong
+                >
+              </li>
+              <li>
+                🎯 Código de Respuesta
+                <br />
+                ¿Qué status HTTP debo devolver si lo atrapo?
+                <br />
+                Pero puedes poner,
+                <strong class="text-purple-700">200, 404, 500</strong>, lo que
+                quieras. Si pones un código de error (4xx o 5xx), haré lo
+                posible para devolverlo como un error.
+              </li>
+              <li>
+                🪡 JSON de Respuesta (opcional)
+                <br />
+                Si quieres que devuelva una respuesta personalizada, escríbela
+                aquí. <br />
+                Por ejemplo:
+                <pre>
+{
+  "data": {
+    "id": 1,
+    "name": "Lucy",
+    "job": "HTTP eater"
+  }
+}
+                </pre>
+              </li>
+            </ul>
+          </div>
+          <hr />
+          <div id="web">
+            <h4 class="text-lg font-bold flex items-center">
+              🕸️ Mi Telaraña: donde guardo tus bichos
+            </h4>
+            <p>
+              Aquí es donde conservo todas las trampas que se han tejido. Puedes
+              verlos en la pestaña
+              <strong class="text-purple-700">Telaraña</strong>. Mira cómo
+              leerla:
+            </p>
+            <p>🐞 Cada fila representa un bicho</p>
+            <ul class="list-disc list-inside pl-4">
+              <li>
+                Nombre del bicho
+                <br />
+              </li>
+              <li>Método y código. Ej: 🦋GET-200</li>
+              <li>
+                URL: Es la URL exacta (o con comodines) que estoy vigilando.
+              </li>
+              <li>
+                Respuesta simulada
+                <br />
+                <strong class="text-purple-700"
+                  >Haz click en la url para verla</strong
+                >. <br />
+                Si me diste un JSON, te lo muestro aquí. ¡Es lo que escupo
+                cuando alguien cae en la trampa!
+              </li>
+            </ul>
+            <p>🛠️ Acciones por bicho</p>
+            <ul>
+              <li>🔵 Editar: Modificamos las reglas de la trampa.</li>
+              <li>🟥 Borrar: Lo elimino de la telaraña (sin piedad).</li>
+              <li>
+                🟢 Liberar: Dejo pasar la petición como si no existiera el
+                bicho.
+              </li>
+              <li>
+                ⚫ Capturar: Lo reactivo para que vuelva a atrapar peticiones.
+              </li>
+            </ul>
+            <br />
+            <strong class="text-lg font-bold flex items-center">
+              Capturar y Liberar bichos
+            </strong>
+            <p>Hay dos botones especiales para cada trampa en la telaraña:</p>
+            <p>
+              🕸️ Capturar
+              <br />
+              Cuando haces clic en
+              <button class="px-2 py-1 text-white rounded-md bg-gray-700">
+                Capturar
+              </button>
+              , activo la trampa. Eso significa:
+            </p>
+            <ul class="list-disc list-inside pl-4">
+              <li>Cualquier petición HTTP que coincida será capturada.</li>
+              <li>
+                La respuesta falsa (el JSON que configuraste) será devuelta
+                automáticamente.
+              </li>
+              <li>
+                <strong class="text-purple-700"
+                  >⚠️ Importante: La petición nunca llegará al servidor real. Me
+                  la como antes 😋. Por lo tanto no la verás en la información
+                  de red del navegador
+                </strong>
+              </li>
+            </ul>
+            <p>
+              👉 Verás el botón cambiar a Liberar para mostrar que está activa.
+            </p>
+            <p>
+              ✋ Liberar
+              <br />
+              Al hacer clic en
+              <button class="px-2 py-1 text-white rounded-md bg-green-700">
+                Liberar
+              </button>
+              , Me desenredo un poquito:
+            </p>
+            <ul class="list-disc list-inside pl-4">
+              <li>La trampa se desactiva.</li>
+              <li>
+                Me tapo mis 8 ojos y hago como que no vi nada. Las peticiones
+                siguen su camino directo al servidor, sin interrupciones.
+              </li>
+              <li>Es como si levantara una pata y dejara al bicho ir.</li>
+            </ul>
+            <p>👉 El botón cambiará a Capturar de nuevo.</p>
+            <p>
+              🧠 Consejo:
+              <br />
+              Puedes activar o desactivar trampas cuando quieras, sin necesidad
+              de recargar la página. ¡Rápido y limpio!
+            </p>
+          </div>
+          <hr />
+          <div id="options">
+            <h4 class="text-lg font-bold flex items-center">
+              🧰 Opciones: Herramientas de telaraña
+            </h4>
+            <p>
+              Aquí en mi rincón de Opciones, te dejo hilos mágicos para mover
+              bichos dentro y fuera de mi telaraña:
+            </p>
+            <ul class="list-disc list-inside pl-4">
+              <li>
+                📤 Exportar bichos
+                <br />
+                Con este botón envuelvo todos los bichos atrapados en tu
+                telaraña y los empaco en un archivo JSON. Así puedes guardarlos,
+                compartirlos o llevártelos de paseo por otros navegadores. 🐞📦
+              </li>
+              <li>
+                📥 Importar bichos <br />
+                ¿Tienes una cajita de bichos de otra telaraña? Dale clic a este
+                botón y suéltalos aquí. Yo los atrapo, los ordeno y los dejo
+                listos para que vuelvan a hacer su magia. ¡Más bichos, más
+                diversión! 🕷️✨
+              </li>
+            </ul>
+            <p>
+              Cuando usas Exportar bichos, Lucy empaca cada bichito (o
+              intercept) en una cajita JSON con esta forma:
+            </p>
+            <pre>
+[
+  {
+    "name": "user info",
+    "url": "https://api.ejemplo.com/usuario/{id}",
+    "method": "GET",
+    "responseCode": 200,
+    "response": {
+      "id": 1,
+      "nombre": "Lucy"
+    }
+  },
+  ...
+]
+            </pre>
+          </div>
+          <hr />
+          <div id="extension">
+            <h4 class="text-lg font-bold flex items-center">
+              📎 Indicador en el ícono de la extensión
+            </h4>
+            <p>
+              ¿Ves ese iconito de telaraña con un número morado junto a la barra
+              del navegador? 🕸️ Ese soy yo, Lucy, mostrándote cuántas trampas
+              tengo activas.
+            </p>
+            <img
+              src="indicator.png"
+              alt="Indicador de trampas activas en el ícono de Lucy"
+            />
+            <p>
+              El número indica cuántas reglas están vigilando URLs ahora mismo.
+            </p>
+            <ul class="list-disc list-inside pl-4">
+              <li>🔢 Si hay trampas activas, te muestro cuántas.</li>
+              <li>🌑 Si no hay ninguna, muestro 0 y en oscuro.</li>
+            </ul>
+            <p>
+              Así puedes ver de un vistazo si estoy en modo caza... o de siesta
+              💤.
+            </p>
+          </div>
+          <hr />
+          <p>
+            Gracias por confiar en Lucy. Estamos abiertos a cualquier problema o
+            sugerencia que quieras compartir.
+          </p>
+          <p>Hecho con ❤️ por Diego López.</p>
+          <p>— “Y vigilado por mí, claro 🕷️” —Lucy</p>
         </div>
       </div>
     </div>
-
     <script src="tailwind_4.js"></script>
     <script src="popup.js" type="module"></script>
   </body>
