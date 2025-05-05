@@ -1,5 +1,5 @@
 export const generateId = () =>
-  `${Math.random().toString(36)}${Date.now().toString(36)}${Math.random().toString(36)}`;
+  `${Date.now().toString(36)}${Math.random().toString(36)}`.toLowerCase();
 
 export function getValueFromStorage(key) {
   return new Promise((resolve) => {

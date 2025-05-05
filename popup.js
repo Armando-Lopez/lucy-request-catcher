@@ -49,7 +49,7 @@ function getFormData() {
   const values = Object.fromEntries(formData);
   return {
     id: values.id,
-    name: values.name,
+    name: values.name.trim(),
     method: values.method,
     url: values.url.trim(),
     responseCode: parseInt(values.responseCode),
@@ -226,14 +226,23 @@ async function printIntercepts() {
 
 function activeExportIntercepts() {
   document.getElementById("exportBugs").addEventListener("click", async () => {
-    const data = (await getValueFromStorage(INTERCEPTS)) || [];
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "bichos_export.json";
-    a.click();
+    try {
+      const data = (await getValueFromStorage(INTERCEPTS)) || [];
+      const newDataToExport = data.map((item) => ({
+        ...item,
+        id: undefined,
+        active: undefined,
+      }));
+      const json = JSON.stringify(newDataToExport, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "bichos_export.json";
+      a.click();
+    } catch (e) {
+      console.error(e);
+    }
   });
 }
 
@@ -246,8 +255,14 @@ function activeImportIntercepts() {
         const file = ev.target.files[0];
         if (!file) return;
         const content = await file.text();
-        const data = JSON.parse(content);
-        await setValueInStorage(INTERCEPTS, data);
+        const uploadedData = JSON.parse(content);
+        const prevData = (await getValueFromStorage(INTERCEPTS)) || [];
+        const newDataToSave = [...prevData, ...uploadedData].map((item) => ({
+          ...item,
+          id: item.id || generateId(),
+          active: false,
+        }));
+        await setValueInStorage(INTERCEPTS, newDataToSave);
         document.querySelectorAll(".tab-btn")[0].click();
         printIntercepts();
       } catch (e) {
