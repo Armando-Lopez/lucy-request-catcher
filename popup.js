@@ -2,11 +2,12 @@ import {
   createElement,
   getValueFromStorage,
   setValueInStorage,
+  generateId,
 } from "./helpers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
-  initForm();
+  handleSave();
   printIntercepts();
   handleSaveDraft();
   activeExportIntercepts();
@@ -47,6 +48,7 @@ function getFormData() {
   const formData = new FormData(document.getElementById("form"));
   const values = Object.fromEntries(formData);
   return {
+    id: values.id,
     name: values.name,
     method: values.method,
     url: values.url.trim(),
@@ -56,19 +58,19 @@ function getFormData() {
   };
 }
 
-function initForm() {
+function handleSave() {
   const form = document.getElementById("form");
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const itemToSave = getFormData();
     const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
-    const index = data.findIndex((i) => i.name === itemToSave.name);
+    const index = data.findIndex((i) => i.id === itemToSave.id);
     if (index !== -1) {
-      // update if name already exists
+      // update if id already exists
       data[index] = itemToSave;
     } else {
-      // add if name does not exist
-      data.push(itemToSave);
+      // add if id does not exist
+      data.push({ ...itemToSave, id: generateId() });
     }
     await setValueInStorage(INTERCEPTS, data);
     form.reset();
@@ -115,7 +117,7 @@ function handleSaveDraft() {
 async function toggleEnableIntercept(selectedItem) {
   const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
   const newData = data.map((item) =>
-    item.name === selectedItem.name
+    item.id === selectedItem.id
       ? { ...item, active: !selectedItem.active }
       : item
   );
@@ -130,7 +132,7 @@ async function goToEditIntercept(selectedItem) {
 
 async function deleteIntercept(selectedItem) {
   const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
-  const newData = data.filter((item) => item.name !== selectedItem.name);
+  const newData = data.filter((item) => item.id !== selectedItem.id);
   await setValueInStorage(INTERCEPTS, newData);
   printIntercepts();
 }
