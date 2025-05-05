@@ -156,14 +156,18 @@ async function printIntercepts() {
 
   const fragment = document.createDocumentFragment();
   data.forEach((item) => {
-    const name = createElement("strong").text(item.name)
+    const name = createElement("strong").text(item.name);
     const method = createElement("span").text(item.method);
     const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
       createElement("summary").text(item.url),
       createElement("pre").text(prettyResponse),
     ]);
-    const responseCode = createElement("span").text(item.responseCode);
+    const responseCode = createElement("span")
+      .text(item.responseCode)
+      .attrs({
+        class: item.responseCode < 400 ? "text-green-600" : "text-red-600",
+      });
     const toggleBtn = createElement("button")
       .text(item.active ? "Liberar" : "Capturar")
       .attrs({
@@ -199,11 +203,11 @@ async function printIntercepts() {
       .children([
         name,
         createElement("div")
-          .attrs({ class: "flex items-center" })
+          .attrs({ class: "flex items-center gap-1" })
           .children([
             bugMethod[item.method],
             method,
-            " - ",
+            "-",
             responseCode,
             actions,
           ]),

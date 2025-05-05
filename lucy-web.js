@@ -33,8 +33,9 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       if (!matched) {
         return originalFetch(...args);
       }
-      console.log("Intercepted fetch: 🕷️🕸️", url, input ?? rest);
       const data = JSON.stringify(matched.response ?? {});
+      console.log("Lucy ha capturado un bicho fetch: 🕷️🕸️", method, url);
+      sendMessage("ON_BUG_CATCH");
       return new Response(data, {
         status: Number(matched.responseCode ?? 200),
         headers: {
@@ -57,7 +58,8 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           if (!config.url) return config;
           const matched = findIntercept(config.url, config.method);
           if (!matched) return config;
-          console.log("Intercepted axios: 🕷️🕸️", config.url, config);
+          console.log("Lucy ha capturado un bicho axios: 🕷️🕸️", config.method, config.url);
+          sendMessage("ON_BUG_CATCH");
           return Promise.reject({
             __isIntercepted: true,
             intercept: matched,
@@ -146,19 +148,19 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       try {
         const matched = findIntercept?.(this._url, this._method);
         if (matched) {
-          console.log("🕷️ Intercepted XHR:", this._url);
-
+          console.log("Lucy ha capturado un bicho XHR: 🕷️🕸️", this._method, this._url);
+          sendMessage("ON_BUG_CATCH");
           // Simular respuesta asíncrona
           setTimeout(() => {
-            const fakeResponse = JSON.stringify(matched.response ?? {});
+            const response = JSON.stringify(matched.response ?? {});
             Object.defineProperty(this, "readyState", { value: 4 });
             Object.defineProperty(this, "status", {
               value: Number(matched.responseCode ?? 200),
             });
             Object.defineProperty(this, "responseText", {
-              value: fakeResponse,
+              value: response,
             });
-            Object.defineProperty(this, "response", { value: fakeResponse });
+            Object.defineProperty(this, "response", { value: response });
             this.onreadystatechange?.();
             this.onload?.();
             this._dispatchEvent("load");
@@ -192,10 +194,10 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           this.ontimeout?.apply(this, ...args);
           this._dispatchEvent("timeout");
         };
-        // this.xhr.onloadstart = (...args) => {
-        //   this.onloadstart?.apply(this, ...args);
-        //   this._dispatchEvent("loadstart");
-        // };
+        this.xhr.onloadstart = (...args) => {
+          this.onloadstart?.apply(this, ...args);
+          this._dispatchEvent("loadstart");
+        };
         this.xhr.onprogress = (...args) => {
           this.onprogress?.apply(this, ...args);
           this._dispatchEvent("progress");

@@ -5,17 +5,24 @@ script.onload = () => script.remove(); // Limpieza opcional
 (document.head || document.documentElement).appendChild(script);
 
 sendIntercepts();
-onMessage("GET_INTERCEPTS_ASK", () => {
-  sendIntercepts();
-});
-chrome.storage.onChanged.addListener(async () => {
-  sendIntercepts();
-});
+
 function sendIntercepts() {
   getValueFromStorage("intercepts").then((intercepts = []) => {
     sendMessage("INTERCEPTS_CHANGED", intercepts);
   });
 }
+
+onMessage("GET_INTERCEPTS_ASK", () => {
+  sendIntercepts();
+});
+
+chrome.storage.onChanged.addListener(async () => {
+  sendIntercepts();
+});
+
+onMessage("ON_BUG_CATCH", () => {
+  chrome.runtime.sendMessage("BLINK_CATCH_BADGE");
+});
 
 // Helpers duplicados porque este archivo no tiene acceso al resto del código
 function sendMessage(name, value) {
