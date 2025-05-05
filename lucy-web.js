@@ -1,6 +1,7 @@
 import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 (function () {
   let savedIntercepts = [];
+  
   sendMessage("GET_INTERCEPTS_ASK");
   onMessage("INTERCEPTS_CHANGED", (data = []) => {
     savedIntercepts = data;
@@ -20,6 +21,11 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
     });
   }
 
+  function logCatch(type, url, method) {
+    console.log(`Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`, method, url);
+    sendMessage("ON_BUG_CATCH");
+  }
+
   // Interceptar Fetch
   const originalFetch = window.fetch;
   window.fetch = async (...args) => {
@@ -34,10 +40,9 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
         return originalFetch(...args);
       }
       const data = JSON.stringify(matched.response ?? {});
-      console.log("Lucy ha capturado un bicho fetch: 🕷️🕸️", method, url);
-      sendMessage("ON_BUG_CATCH");
+      logCatch("fetch", url, method);
       return new Response(data, {
-        status: Number(matched.responseCode ?? 200),
+        status: Number(matched.responseCode),
         headers: {
           "Content-Type": "application/json",
         },
@@ -58,8 +63,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           if (!config.url) return config;
           const matched = findIntercept(config.url, config.method);
           if (!matched) return config;
-          console.log("Lucy ha capturado un bicho axios: 🕷️🕸️", config.method, config.url);
-          sendMessage("ON_BUG_CATCH");
+          logCatch("axios", config.url, config.method);
           return Promise.reject({
             __isIntercepted: true,
             intercept: matched,
@@ -88,7 +92,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           }
           return Promise.resolve({
             data: error.intercept.response ?? {},
-            status: Number(error.intercept.responseCode ?? 200),
+            status: Number(error.intercept.responseCode),
             config: error.config,
             statusText: "",
             headers: {
@@ -104,169 +108,50 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
   }
 
   // Interceptar XHR
+  const originalOpen = XMLHttpRequest.prototype.open;
+  const originalSend = XMLHttpRequest.prototype.send;
 
-  const OriginalXHR = window.XMLHttpRequest;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    this.__interceptedBug = findIntercept(url, method);
+    this.__method = method;
+    this.__url = url;
+    return originalOpen.apply(this, arguments);
+  };
 
-  class LucyXHR {
-    constructor() {
-      this.xhr = new OriginalXHR();
-      this._method = "";
-      this._url = "";
-      this._listeners = {};
+  XMLHttpRequest.prototype.send = function (...args) {
+    const intercepted = this.__interceptedBug;
 
-      // Proxy all events
-      this.onreadystatechange = null;
-      this.onload = null;
-      this.onerror = null;
-
-      // ⚠️ Importante: devolver un Proxy al final
-      // return new Proxy(this, {
-      //   get(target, prop) {
-      //     if (prop in target) return target[prop];
-      //     if (prop in target.xhr) {
-      //       const value = target.xhr[prop];
-      //       return typeof value === "function" ? value.bind(target.xhr) : value;
-      //     }
-      //     return undefined;
-      //   },
-      //   set(target, prop, value) {
-      //     if (prop in target) {
-      //       target[prop] = value;
-      //     } else {
-      //       target.xhr[prop] = value;
-      //     }
-      //     return true;
-      //   },
-      // });
+    if (!intercepted) {
+      return originalSend.apply(this, args);
     }
-    open(method, url, ...rest) {
-      this._method = method.toUpperCase();
-      this._url = url;
-      this.xhr.open(method, url, ...rest);
-    }
-    send(body) {
-      try {
-        const matched = findIntercept?.(this._url, this._method);
-        if (matched) {
-          console.log("Lucy ha capturado un bicho XHR: 🕷️🕸️", this._method, this._url);
-          sendMessage("ON_BUG_CATCH");
-          // Simular respuesta asíncrona
-          setTimeout(() => {
-            const response = JSON.stringify(matched.response ?? {});
-            Object.defineProperty(this, "readyState", { value: 4 });
-            Object.defineProperty(this, "status", {
-              value: Number(matched.responseCode ?? 200),
-            });
-            Object.defineProperty(this, "responseText", {
-              value: response,
-            });
-            Object.defineProperty(this, "response", { value: response });
-            this.onreadystatechange?.();
-            this.onload?.();
-            this._dispatchEvent("load");
-            this._dispatchEvent("readystatechange");
-          }, 0);
 
-          return;
-        }
+    setTimeout(() => {
+      // Simular respuesta mock
+      Object.defineProperty(this, "readyState", {
+        configurable: true,
+        value: 4,
+      });
+      Object.defineProperty(this, "status", {
+        configurable: true,
+        value: Number(intercepted.responseCode),
+      });
 
-        // Si no hay match, seguir normalmente
-        this.xhr.onreadystatechange = (...args) => {
-          this.readyState = this.xhr.readyState;
-          this.status = this.xhr.status;
-          this.responseText = this.xhr.responseText;
-          this.onreadystatechange?.apply(this, ...args);
-          this._dispatchEvent("readystatechange");
-        };
-        this.xhr.onload = (...args) => {
-          this.onload?.apply(this, ...args);
-          this._dispatchEvent("load");
-        };
-        this.xhr.onerror = (...args) => {
-          this.onerror?.apply(this, ...args);
-          this._dispatchEvent("error");
-        };
-        this.xhr.onabort = (...args) => {
-          this.onabort?.apply(this, ...args);
-          this._dispatchEvent("abort");
-        };
-        this.xhr.ontimeout = (...args) => {
-          this.ontimeout?.apply(this, ...args);
-          this._dispatchEvent("timeout");
-        };
-        this.xhr.onloadstart = (...args) => {
-          this.onloadstart?.apply(this, ...args);
-          this._dispatchEvent("loadstart");
-        };
-        this.xhr.onprogress = (...args) => {
-          this.onprogress?.apply(this, ...args);
-          this._dispatchEvent("progress");
-        };
-        this.xhr.onloadend = (...args) => {
-          this.onloadend?.apply(this, ...args);
-          this._dispatchEvent("loadend");
-        };
-
-        this.xhr.send(body);
-      } catch (e) {
-        console.error(e);
+      if (this.responseType === "" || this.responseType === "text") {
+        Object.defineProperty(this, "responseText", {
+          configurable: true,
+          value: intercepted.response,
+        });
+        Object.defineProperty(this, "response", {
+          configurable: true,
+          value: intercepted.response,
+        });
       }
-    }
-    setRequestHeader(...args) {
-      return this.xhr.setRequestHeader(...args);
-    }
-    addEventListener(type, listener) {
-      if (!this._listeners[type]) this._listeners[type] = [];
-      this._listeners[type].push(listener);
-    }
-    _dispatchEvent(type) {
-      const listeners = this._listeners[type] || [];
-      for (const listener of listeners) {
-        listener.call(this);
-      }
-    }
-  }
 
-  // Proxy properties
-  Object.defineProperty(LucyXHR.prototype, "statusText", {
-    get() {
-      return this.xhr.statusText;
-    },
-  });
+      logCatch("xhr", this.__url, this.__method);
 
-  Object.defineProperty(LucyXHR.prototype, "responseURL", {
-    get() {
-      return this.xhr.responseURL;
-    },
-  });
-
-  [
-    "getAllResponseHeaders",
-    "getResponseHeader",
-    "abort",
-    "overrideMimeType",
-  ].forEach((fn) => {
-    LucyXHR.prototype[fn] = function (...args) {
-      return this.xhr[fn](...args);
-    };
-  });
-
-  ["responseType", "withCredentials"].forEach((prop) => {
-    Object.defineProperty(LucyXHR.prototype, prop, {
-      get() {
-        return this.xhr[prop];
-      },
-      set(value) {
-        this.xhr[prop] = value;
-      },
-    });
-  });
-
-  Object.defineProperty(LucyXHR.prototype, "upload", {
-    get() {
-      return this.xhr.upload;
-    },
-  });
-
-  window.XMLHttpRequest = LucyXHR;
+      this.onreadystatechange?.();
+      this.onload?.();
+      this.onloadend?.();
+    }, 0);
+  };
 })();
