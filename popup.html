@@ -151,13 +151,13 @@
               id="exportBugs"
               class="rounded-md border border-purple-500 p-2 px-4 hover:bg-purple-200 active:bg-purple-300"
             >
-              📤 Exportar bichos
+              📤 Exportar reglas
             </button>
             <button
               id="importBugs"
               class="rounded-md border border-purple-500 p-2 px-4 hover:bg-purple-200 active:bg-purple-300"
             >
-              📥 Importar bichos
+              📥 Importar reglas
             </button>
             <input type="file" id="importBugsFile" accept=".json" hidden />
           </div>
@@ -200,11 +200,11 @@
           <hr />
           <div id="create-edit">
             <h4 class="text-lg font-bold flex items-center">
-              🧵 Registrar un bicho en la telaraña
+              🧵 Registrar una trampa en la telaraña
             </h4>
             <p>
-              Cuando quieras enseñarme a atrapar un bicho, sólo tienes que
-              llenar mi formulario de
+              Cuando quieras enseñarme a atrapar un bicho, sólo tienes que crear
+              la regla en mi formulario de
               <strong class="text-purple-700">Nuevo/Editar</strong>. Haré una
               telaraña para él.
             </p>
@@ -213,7 +213,7 @@
               <li>
                 📝 Nombre
                 <br />
-                Es solo para ti. Así recuerdas qué bicho atrapaste.
+                Es solo para ti. Así recordamos qué bicho queremos atrapar.
                 <br />
                 Ej: "Intercept de usuario"
               </li>
@@ -265,11 +265,16 @@
                 </pre>
               </li>
             </ul>
+            <p>
+              Cuando termines, tendrás tu regla listada en la telaraña. Al
+              crearla estará desactivada por defecto. Sólo buscala en la lista,
+              revisa que todo esté bien y activala.
+            </p>
           </div>
           <hr />
           <div id="web">
             <h4 class="text-lg font-bold flex items-center">
-              🕸️ Mi Telaraña: donde guardo tus bichos
+              🕸️ Mi Telaraña: donde guardo tus reglas para cazar
             </h4>
             <p>
               Aquí es donde conservo todas las trampas que se han tejido. Puedes
@@ -277,10 +282,10 @@
               <strong class="text-purple-700">Telaraña</strong>. Mira cómo
               leerla:
             </p>
-            <p>🐞 Cada fila representa un bicho</p>
+            <p>🐞 Cada fila representa una regla para capturar bichos</p>
             <ul class="list-disc list-inside pl-4">
               <li>
-                Nombre del bicho
+                Nombre de la regla
                 <br />
               </li>
               <li>Método y código. Ej: 🦋GET-200</li>
@@ -297,9 +302,13 @@
                 cuando alguien cae en la trampa!
               </li>
             </ul>
-            <p>🛠️ Acciones por bicho</p>
+            <p>🛠️ Acciones por regla</p>
             <ul>
-              <li>🔵 Editar: Modificamos las reglas de la trampa.</li>
+              <li>
+                🔵 Editar: Modificamos las reglas de la trampa. <br />
+                Cada vez actualices una regla, se desactivará. Revisa que todo
+                esté bien y activala.
+              </li>
               <li>🟥 Borrar: Lo elimino de la telaraña (sin piedad).</li>
               <li>
                 🟢 Liberar: Dejo pasar la petición como si no existiera el
@@ -372,28 +381,24 @@
             </h4>
             <p>
               Aquí en mi rincón de Opciones, te dejo hilos mágicos para mover
-              bichos dentro y fuera de mi telaraña:
+              las reglas dentro y fuera de mi telaraña:
             </p>
             <ul class="list-disc list-inside pl-4">
               <li>
-                📤 Exportar bichos
+                📤 Exportar reglas
                 <br />
-                Con este botón envuelvo todos los bichos atrapados en tu
-                telaraña y los empaco en un archivo JSON. Así puedes guardarlos,
-                compartirlos o llevártelos de paseo por otros navegadores. 🐞📦
+                Con este botón envuelvo todos las reglas tejidas en la telaraña
+                y las empaco en un archivo JSON. Así puedes guardarlas,
+                compartirlas o llevártelas de paseo por otros navegadores. 🐞📦
               </li>
               <li>
-                📥 Importar bichos <br />
-                ¿Tienes una cajita de bichos de otra telaraña? Dale clic a este
-                botón y suéltalos aquí. Yo los atrapo, los ordeno y los dejo
-                listos para que vuelvan a hacer su magia. ¡Más bichos, más
-                diversión! 🕷️✨
+                📥 Importar reglas <br />
+                ¿Tienes hilos de reglas de otra telaraña? Dale clic a este botón
+                y suéltalas aquí. las ordeno y las dejo listas para que vuelvan
+                a hacer su magia ✨
               </li>
             </ul>
-            <p>
-              Cuando usas Exportar bichos, Lucy empaca cada bichito (o
-              intercept) en una cajita JSON con esta forma:
-            </p>
+            <p>Las reglas se guardan en un JSON con esta forma:</p>
             <pre>
 [
   {
