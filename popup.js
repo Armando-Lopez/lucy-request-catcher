@@ -308,6 +308,8 @@ function activeImportTraps() {
         await setValueInStorage(INTERCEPTS, newDataToSave);
         document.querySelectorAll(".tab-btn")[0].click();
         printTraps();
+        setValueInStorage(TEMPORAL_DATA, {});
+        chrome.tabs?.reload?.();
       } catch (e) {
         console.error(e);
       }
