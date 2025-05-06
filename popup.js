@@ -188,7 +188,7 @@ async function printTraps() {
   const container = document.getElementById("intercepts");
   container.innerHTML = "";
   if (data.length === 0) {
-    container.innerHTML = `<div class="flex flex-col justify-center items-center h-full">
+    container.innerHTML = `<div class="w-100 mx-auto flex flex-col justify-center items-center h-full text-center">
       <p>No hay bichos en la telaraña</p>
       <p>
         Haz click en
@@ -196,6 +196,11 @@ async function printTraps() {
         para empezar a capturar
       </p>
       <span class="text-8xl"> 🕸️ </span>
+      <p>
+        Si es tu primera vez por aquí, haz click en
+        <strong class="text-purple-600">"Acerca"</strong>
+        para aprender a usar la telaraña
+      </p>
     </div>`;
     return;
   }
@@ -207,7 +212,7 @@ async function printTraps() {
     const method = createElement("span").text(item.method);
     const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
-      createElement("summary").text(item.url),
+      createElement("summary").text(`${bugMethod[item.method]} ${item.url}`),
       createElement("pre").text(prettyResponse),
     ]);
     const responseCode = createElement("span")
@@ -252,13 +257,7 @@ async function printTraps() {
         webSite,
         createElement("div")
           .attrs({ class: "flex items-center gap-1" })
-          .children([
-            bugMethod[item.method],
-            method,
-            "-",
-            responseCode,
-            actions,
-          ]),
+          .children([method, "-", responseCode, actions]),
         createElement("div")
           .attrs({ class: "text-wrap break-all" })
           .children([requestInfo]),
