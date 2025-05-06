@@ -1,7 +1,7 @@
 [
   {
-    "active": true,
     "name": "user 1",
+    "webSite": "https://jsonplaceholder.typicode.com",
     "method": "GET",
     "url": "https://jsonplaceholder.typicode.com/users/1",
     "responseCode": 200,
@@ -14,8 +14,8 @@
     }
   },
   {
-    "active": false,
     "name": "save post",
+    "webSite": "https://jsonplaceholder.typicode.com",
     "method": "POST",
     "url": "https://jsonplaceholder.typicode.com/posts",
     "responseCode": 201,
@@ -27,8 +27,8 @@
     }
   },
   {
-    "active": false,
     "name": "user no found",
+    "webSite": "https://jsonplaceholder.typicode.com",
     "method": "GET",
     "url": "https://jsonplaceholder.typicode.com/users/555",
     "responseCode": 404,

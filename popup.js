@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   handleSave();
   printTraps();
   handleSaveDraft();
-  activeExportIntercepts();
-  activeImportIntercepts();
+  activeExportTraps();
+  activeImportTraps();
 });
 
 const INTERCEPTS = "intercepts";
@@ -107,8 +107,6 @@ function handleSave() {
 }
 
 function validateForm(itemToSave) {
-  console.log(JSON.stringify(itemToSave.response));
-  console.log(isValidJSON(JSON.stringify(itemToSave.response)));
   if (!validURL(itemToSave.webSite)) {
     alert("Parece que la URL del sitio web no es válida");
     return false;
@@ -269,7 +267,7 @@ async function printTraps() {
   container.appendChild(fragment);
 }
 
-function activeExportIntercepts() {
+function activeExportTraps() {
   document.getElementById("exportBugs").addEventListener("click", async () => {
     try {
       const data = (await getValueFromStorage(INTERCEPTS)) || [];
@@ -291,7 +289,7 @@ function activeExportIntercepts() {
   });
 }
 
-function activeImportIntercepts() {
+function activeImportTraps() {
   document.getElementById("importBugs").addEventListener("click", async () => {
     const inputFile = document.getElementById("importBugsFile");
     inputFile.click();
