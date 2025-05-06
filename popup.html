@@ -49,18 +49,18 @@
         </button>
       </div>
       <!-- Contenido -->
-      <div class="flex-1 overflow-y-auto px-5 p-3 mb-1">
+      <div id="tabs-container" class="flex-1 overflow-y-auto px-5 pt-3 mb-1">
         <!-- Contenido de la pestaña General -->
         <div class="tab-content h-full" id="tab1">
           <div id="intercepts" class="h-full space-y-4"></div>
         </div>
-        <!-- Contenido de la pestaña Nuevo -->
+        <!-- Contenido de la pestaña Nuevo/Editar -->
         <div class="tab-content h-full hidden" id="tab2">
           <form id="form" class="grid gap-4" autocomplete="off">
             <input type="text" name="id" id="id" hidden />
             <input type="checkbox" name="active" id="active" hidden />
             <div class="w-full">
-              <label for="name">Nombre</label>
+              <label for="name">📝 Nombre de la regla</label>
               <input
                 class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 type="text"
@@ -71,7 +71,18 @@
               />
             </div>
             <div class="w-full">
-              <label for="url">URL</label>
+              <label for="name">🌐 Sitio web</label>
+              <input
+                class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                type="text"
+                id="webSite"
+                name="webSite"
+                placeholder="https://ejemplo.com"
+                required
+              />
+            </div>
+            <div class="w-full">
+              <label for="url">🐞 URL a atrapar</label>
               <input
                 class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 type="text"
@@ -83,7 +94,7 @@
             </div>
             <div class="flex flex-wrap gap-5">
               <div class="grid">
-                <label for="method">Método HTTP</label>
+                <label for="method">📬 Método HTTP</label>
                 <select
                   id="method"
                   name="method"
@@ -99,7 +110,7 @@
                 </select>
               </div>
               <div class="grid">
-                <label for="responseCode">Código de Respuesta</label>
+                <label for="responseCode">🎯 Código de Respuesta</label>
                 <input
                   class="control w-24 rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
                   type="number"
@@ -111,7 +122,7 @@
               </div>
             </div>
             <div class="w-full">
-              <label for="response">JSON de Respuesta (opcional)</label>
+              <label for="response">🪡 JSON de Respuesta (opcional)</label>
               <textarea
                 id="response"
                 name="response"
@@ -182,12 +193,12 @@
                 <span class="text-purple-700">Fetch, Axios y XHR</span>.
               </li>
               <li>
-                🕸️ Revisar si alguna coincide con mis hilos (las reglas que me
+                🕸️ Revisar si alguna coincide con las trampas (las reglas que
                 configuras).
               </li>
               <li>
-                🐞 Si encuentro un bug que encaja... ¡zas! Lo atrapo y devuelvo
-                una respuesta falsa.
+                🐞 Si encuentro un bicho que encaja... ¡zas! Lo atrapo y devuelvo
+                una respuesta personalizada.
               </li>
               <li>
                 🕶️ Si no, dejo que siga su camino como si nada hubiera pasado.
@@ -214,19 +225,27 @@
               <li>
                 📝 Nombre
                 <br />
-                Es solo para ti. Así recordamos qué bicho queremos atrapar.
-                <br />
-                Ej: "Intercept de usuario"
+                Así recordamos qué bicho queremos atrapar.
               </li>
               <li>
-                🌐 URL
+                🌐 Sitio web
+                <br />
+                La URL del sitio web donde queremos atrapar el bichos. No
+                queremos enrredarnos en lugar indebidos.
+                <br />
+                Por defecto lo llenaré con la URL de la pestaña actual. Sólo me
+                tomare el dominio base.
+              </li>
+              <li>
+                🐞 URL
                 <br />
                 Aquí me dices qué URL debo vigilar
                 <br />
                 Ej: https://api.ejemplo.com/api/users
                 <br />
                 Si la URL tiene parámetros, puedes usar llaves
-                (<strong>{}</strong>) para indicar donde van los valores con números dinámicos.
+                (<strong>{}</strong>) para indicar donde van los valores con
+                números dinámicos.
                 <br />
                 Ej: https://api.ejemplo.com/api/users/{id}
               </li>
@@ -274,7 +293,7 @@
           <hr />
           <div id="web">
             <h4 class="text-lg font-bold flex items-center">
-              🕸️ Mi Telaraña: donde guardo tus reglas para cazar
+              🕸️ Mi Telaraña: donde guardo tus reglas trampa para cazar
             </h4>
             <p>
               Aquí es donde conservo todas las trampas que se han tejido. Puedes
@@ -288,18 +307,16 @@
                 Nombre de la regla
                 <br />
               </li>
+              <li>Sitio web donde queremos atrapar el bichos.</li>
               <li>Método y código. Ej: 🦋GET-200</li>
               <li>
                 URL: Es la URL exacta (o con comodines) que estoy vigilando.
               </li>
               <li>
                 Respuesta simulada
-                <br />
                 <strong class="text-purple-700"
                   >Haz click en la url para verla</strong
-                >. <br />
-                Si me diste un JSON, te lo muestro aquí. ¡Es lo que escupo
-                cuando alguien cae en la trampa!
+                >
               </li>
             </ul>
             <p>🛠️ Acciones por regla</p>
@@ -364,7 +381,6 @@
                 Me tapo mis 8 ojos y hago como que no vi nada. Las peticiones
                 siguen su camino directo al servidor, sin interrupciones.
               </li>
-              <li>Es como si levantara una pata y dejara al bicho ir.</li>
             </ul>
             <p>👉 El botón cambiará a Capturar de nuevo.</p>
             <p>
@@ -378,9 +394,11 @@
             </strong>
             <p>
               ¿Sabías que tengo un instinto de limpieza? Si desactivas todas las
-              trampas, <strong class="text-purple-700">sacudo la telaraña y recargo la página</strong>. ¿Por qué? Para
-              asegurarme de que no quede ningún hilo colgando, que pueda alterar
-              el comportamiento de la página.
+              trampas de un sitio web,
+              <strong class="text-purple-700"
+                >sacudo la telaraña y recargo la página</strong
+              >. ¿Por qué? Para asegurarme de que no quede ningún hilo colgando,
+              que pueda alterar el comportamiento de la página.
             </p>
             <p>
               Así que si ves que de pronto la página se recarga... no te
@@ -425,6 +443,7 @@
     "url": "https://api.ejemplo.com/usuario/{id}",
     "method": "GET",
     "responseCode": 200,
+    "webSite": "https://ejemplo.com",
     "response": {
       "id": 1,
       "nombre": "Lucy"

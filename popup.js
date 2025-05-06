@@ -1,14 +1,16 @@
 import {
-  createElement,
-  getValueFromStorage,
-  setValueInStorage,
   generateId,
+  validURL,
+  createElement,
+  setValueInStorage,
+  getValueFromStorage,
+  isValidJSON,
 } from "./helpers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   handleSave();
-  printIntercepts();
+  printTraps();
   handleSaveDraft();
   activeExportIntercepts();
   activeImportIntercepts();
@@ -25,6 +27,7 @@ const bugMethod = {
 };
 
 function initTabs() {
+  const tabsContainer = document.getElementById("tabs-container");
   const tabs = document.querySelectorAll(".tab-btn");
   const contents = document.querySelectorAll(".tab-content");
   const selectedClass = ["text-purple-800"];
@@ -39,6 +42,7 @@ function initTabs() {
       // Activar el seleccionado
       tab.classList.add(...selectedClass);
       document.getElementById(selected).classList.remove("hidden");
+      tabsContainer.scrollTo(0, 0);
     });
   });
   tabs[0].click();
@@ -49,35 +53,75 @@ function getFormData() {
   const values = Object.fromEntries(formData);
   return {
     id: values.id,
-    name: values.name.trim(),
     method: values.method,
     url: values.url.trim(),
+    name: values.name.trim(),
+    webSite: values.webSite.trim(),
+    active: values.active === "on",
     responseCode: parseInt(values.responseCode),
     response: JSON.parse(values.response.trim() || "{}"),
-    active: values.active === "on",
   };
 }
 
+function fillWebSiteInput() {
+  const webSiteInput = document.getElementById("webSite");
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const webSite = validURL(tabs[0].url)?.origin;
+    webSiteInput.value = webSite;
+  });
+  webSiteInput.addEventListener("blur", (ev) => {
+    const value = ev.target.value;
+    const url = validURL(value);
+    if (!url) return;
+    ev.target.value = url?.origin;
+  });
+}
+
 function handleSave() {
+  fillWebSiteInput();
   const form = document.getElementById("form");
   form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const itemToSave = getFormData();
-    const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
-    const index = data.findIndex((i) => i.id === itemToSave.id);
-    if (index !== -1) {
-      // update if id already exists
-      data[index] = itemToSave;
-    } else {
-      // add if id does not exist
-      data.push({ ...itemToSave, id: generateId() });
+    try {
+      event.preventDefault();
+      const itemToSave = getFormData();
+      if (!validateForm(itemToSave)) return;
+      const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+      const index = data.findIndex((i) => i.id === itemToSave.id);
+      if (index !== -1) {
+        // update if id already exists
+        data[index] = itemToSave;
+      } else {
+        // add if id does not exist
+        data.push({ ...itemToSave, id: generateId() });
+      }
+      await setValueInStorage(INTERCEPTS, data);
+      form.reset();
+      fillWebSiteInput();
+      document.querySelectorAll(".tab-btn")[0].click();
+      printTraps();
+      setValueInStorage(TEMPORAL_DATA, {});
+    } catch (e) {
+      console.error(e);
     }
-    await setValueInStorage(INTERCEPTS, data);
-    form.reset();
-    document.querySelectorAll(".tab-btn")[0].click();
-    printIntercepts();
-    setValueInStorage(TEMPORAL_DATA, {});
   });
+}
+
+function validateForm(itemToSave) {
+  console.log(JSON.stringify(itemToSave.response));
+  console.log(isValidJSON(JSON.stringify(itemToSave.response)));
+  if (!validURL(itemToSave.webSite)) {
+    alert("Parece que la URL del sitio web no es válida");
+    return false;
+  }
+  if (!validURL(itemToSave.url)) {
+    alert("Parece que la URL a capturar no es válida");
+    return false;
+  }
+  if (!isValidJSON(JSON.stringify(itemToSave.response))) {
+    alert("Parece que la respuesta JSON no es válido");
+    return false;
+  }
+  return true;
 }
 
 function fillForm(data) {
@@ -122,7 +166,7 @@ async function toggleEnableIntercept(selectedItem) {
       : item
   );
   await setValueInStorage(INTERCEPTS, newData);
-  printIntercepts();
+  printTraps();
 }
 
 async function goToEditIntercept(selectedItem) {
@@ -134,10 +178,10 @@ async function deleteIntercept(selectedItem) {
   const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
   const newData = data.filter((item) => item.id !== selectedItem.id);
   await setValueInStorage(INTERCEPTS, newData);
-  printIntercepts();
+  printTraps();
 }
 
-async function printIntercepts() {
+async function printTraps() {
   const data = ((await getValueFromStorage(INTERCEPTS)) || []).toSorted(
     (a, b) => (a.name < b.name ? -1 : 1)
   );
@@ -159,6 +203,7 @@ async function printIntercepts() {
   const fragment = document.createDocumentFragment();
   data.forEach((item) => {
     const name = createElement("strong").text(item.name);
+    const webSite = createElement("p").text(`🌐 ${item.webSite}`);
     const method = createElement("span").text(item.method);
     const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
@@ -204,6 +249,7 @@ async function printIntercepts() {
       .attrs({ class: "border-b border-purple-300 p-2" })
       .children([
         name,
+        webSite,
         createElement("div")
           .attrs({ class: "flex items-center gap-1" })
           .children([
@@ -264,7 +310,7 @@ function activeImportIntercepts() {
         }));
         await setValueInStorage(INTERCEPTS, newDataToSave);
         document.querySelectorAll(".tab-btn")[0].click();
-        printIntercepts();
+        printTraps();
       } catch (e) {
         console.error(e);
       }

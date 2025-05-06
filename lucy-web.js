@@ -2,16 +2,21 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 (function () {
   sendMessage("GET_INTERCEPTS_ASK");
   onMessage("INTERCEPTS_CHANGED", (savedTraps = []) => {
-    const canRunWebTraps = savedTraps.some((item) => item.active) > 0;
+    const shouldRunInThisTab = savedTraps.some(
+      (item) => item.webSite === window.location.origin && item.active
+    );
 
-    if (!canRunWebTraps && window.__hasLucyWebs === undefined) {
+    if (window.__hasLucyTraps === undefined && !shouldRunInThisTab) {
       return;
     }
 
-    if (!canRunWebTraps && window.__hasLucyWebs) {
+    if (window.__hasLucyTraps === true && !shouldRunInThisTab) {
       window.location.reload();
       return;
     }
+
+    if (!shouldRunInThisTab) return;
+
     function findTrap(url, method = "GET") {
       return savedTraps.find((item) => {
         try {
@@ -163,6 +168,6 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       }, 0);
     };
 
-    window.__hasLucyWebs = true;
+    window.__hasLucyTraps = true;
   });
 })();

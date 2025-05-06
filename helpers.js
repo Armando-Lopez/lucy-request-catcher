@@ -47,6 +47,14 @@ export function isValidJSON(str) {
   }
 }
 
+export function validURL(str) {
+  try {
+    return new URL(str);
+  } catch (e) {
+    return null;
+  }
+}
+
 export function createElement(tag) {
   return {
     el: document.createElement(tag),
