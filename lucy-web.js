@@ -34,8 +34,8 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       });
     }
 
-    function logCatch(type, url, method) {
-      console.log(`Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`, method, url);
+    function logCatch(type, trap) {
+      console.log(`Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`, trap.method, trap.url, trap.response);
       sendMessage("ON_BUG_CATCH");
     }
 
@@ -53,7 +53,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           return originalFetch(...args);
         }
         const data = JSON.stringify(matched.response ?? {});
-        logCatch("fetch", url, method);
+        logCatch("fetch", matched);
         return new Response(data, {
           status: Number(matched.responseCode),
           headers: {
@@ -76,7 +76,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
             if (!config.url) return config;
             const matched = findTrap(config.url, config.method);
             if (!matched) return config;
-            logCatch("axios", config.url, config.method);
+            logCatch("axios", matched);
             return Promise.reject({
               __isIntercepted: true,
               intercept: matched,
@@ -160,7 +160,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           });
         }
 
-        logCatch("xhr", this.__url, this.__method);
+        logCatch("xhr", intercepted);
 
         this.onreadystatechange?.();
         this.onload?.();
