@@ -35,7 +35,12 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
     }
 
     function logCatch(type, trap) {
-      console.log(`Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`, trap.method, trap.url, trap.response);
+      console.log(
+        `Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`,
+        trap.method,
+        trap.url,
+        trap.response
+      );
       sendMessage("ON_BUG_CATCH");
     }
 
@@ -103,7 +108,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
             if (!error.__isIntercepted) {
               return Promise.reject(error);
             }
-            return Promise.resolve({
+            const data = {
               data: error.intercept.response ?? {},
               status: Number(error.intercept.responseCode),
               config: error.config,
@@ -111,7 +116,12 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
               headers: {
                 "Content-Type": "application/json",
               },
-            });
+            };
+            const hasErrorCode = data.status >= 400;
+            if (hasErrorCode) {
+              return Promise.reject(data);
+            }
+            return Promise.resolve(data);
           } catch (e) {
             console.error("Error in axios", e);
             return Promise.reject(error);
@@ -132,40 +142,45 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
     };
 
     XMLHttpRequest.prototype.send = function (...args) {
-      const intercepted = this.__interceptedBug;
+      try {
+        const intercepted = this.__interceptedBug;
 
-      if (!intercepted) {
-        return originalSend.apply(this, args);
-      }
-
-      setTimeout(() => {
-        // Simular respuesta mock
-        Object.defineProperty(this, "readyState", {
-          configurable: true,
-          value: 4,
-        });
-        Object.defineProperty(this, "status", {
-          configurable: true,
-          value: Number(intercepted.responseCode),
-        });
-
-        if (this.responseType === "" || this.responseType === "text") {
-          Object.defineProperty(this, "responseText", {
-            configurable: true,
-            value: intercepted.response,
-          });
-          Object.defineProperty(this, "response", {
-            configurable: true,
-            value: intercepted.response,
-          });
+        if (!intercepted) {
+          return originalSend.apply(this, args);
         }
 
-        logCatch("xhr", intercepted);
+        setTimeout(() => {
+          // Simular respuesta mock
+          Object.defineProperty(this, "readyState", {
+            configurable: true,
+            value: 4,
+          });
+          Object.defineProperty(this, "status", {
+            configurable: true,
+            value: Number(intercepted.responseCode),
+          });
 
-        this.onreadystatechange?.();
-        this.onload?.();
-        this.onloadend?.();
-      }, 0);
+          if (this.responseType === "" || this.responseType === "text") {
+            Object.defineProperty(this, "responseText", {
+              configurable: true,
+              value: intercepted.response,
+            });
+            Object.defineProperty(this, "response", {
+              configurable: true,
+              value: intercepted.response,
+            });
+          }
+
+          logCatch("xhr", intercepted);
+
+          this.onreadystatechange?.();
+          this.onload?.();
+          this.onloadend?.();
+        }, 0);
+      } catch (e) {
+        console.error("Error in xhr", e);
+        return originalSend.apply(this, args);
+      }
     };
 
     window.__hasLucyTraps = true;
