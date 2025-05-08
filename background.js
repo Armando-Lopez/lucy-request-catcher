@@ -1,3 +1,6 @@
+const TRAPS = "traps";
+const REQUEST_SPIES = "requests_spies";
+
 chrome.storage.onChanged.addListener(() => {
   handleBadgedState();
 });
@@ -5,7 +8,7 @@ chrome.storage.onChanged.addListener(() => {
 handleBadgedState();
 
 async function handleBadgedState() {
-  const intercepts = (await getValueFromStorage("intercepts")) ?? [];
+  const intercepts = (await getValueFromStorage(TRAPS)) ?? [];
 
   const activeIntercepts = intercepts.filter(
     (intercept) => intercept.active
@@ -22,13 +25,13 @@ chrome.runtime.onMessage.addListener(async ({ action, data }) => {
     handleBlinkBadge();
   }
   if (action === "SAVE_REQUEST_SPY") {
-    const savedSpies = await getValueFromSession("requests_spies");
+    const savedSpies = await getValueFromSession(REQUEST_SPIES);
     if (!savedSpies) {
-      setValueToSession("requests_spies", [data]);
+      setValueToSession(REQUEST_SPIES, [data]);
     } else {
       savedSpies.unshift(data);
       const limitedSpies = savedSpies.slice(0, 30);
-      setValueToSession("requests_spies", limitedSpies);
+      setValueToSession(REQUEST_SPIES, limitedSpies);
     }
   }
 });

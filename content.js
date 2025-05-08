@@ -1,23 +1,27 @@
-const script = document.createElement("script");
-script.type = "module";
-script.src = chrome.runtime.getURL("lucy-web.js");
-script.onload = () => script.remove(); // Limpieza opcional
-(document.head || document.documentElement).appendChild(script);
+document.addEventListener("DOMContentLoaded", () => {
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = chrome.runtime.getURL("lucy-web.js");
+  script.onload = () => script.remove(); // Limpieza opcional
+  (document.head || document.documentElement).appendChild(script);
+});
 
-sendIntercepts();
+const TRAPS = "traps";
 
-function sendIntercepts() {
-  getValueFromStorage("intercepts").then((intercepts = []) => {
-    sendMessage("INTERCEPTS_CHANGED", intercepts);
+sendTraps();
+
+function sendTraps() {
+  getValueFromStorage(TRAPS).then((traps = []) => {
+    sendMessage("TRAPS_UPDATED", traps);
   });
 }
 
-onMessage("GET_INTERCEPTS_ASK", () => {
-  sendIntercepts();
+onMessage("GET_TRAPS_ASK", () => {
+  sendTraps();
 });
 
-chrome.storage.onChanged.addListener(async () => {
-  sendIntercepts();
+chrome.storage.onChanged.addListener(() => {
+  sendTraps();
 });
 
 onMessage("ON_BUG_CATCH", () => {

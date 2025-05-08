@@ -20,10 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const noSpiesMessage = document.getElementById("no-spies");
   const requestsSpiesList = document.getElementById("requests-spies-list");
   const clearRequestsSpiesBtn = document.getElementById("clear-spies-list");
+  const toggleSpiesBtn = document.getElementById("toggle-active-spy");
 
-  const INTERCEPTS = "intercepts";
-  const TEMPORAL_DATA = "temporalData";
+  const TRAPS = "traps";
+  const FORM_DRAFT = "form_draft";
   const REQUEST_SPIES = "requests_spies";
+  const RUN_SPY_TABS = "run_spy_tabs";
   const bugMethod = {
     GET: "🦋",
     POST: "🪰",
@@ -42,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   activeClearRequestsSpies();
 
   function activeTabs() {
-    const selectedClass = ["text-purple-800"];
+    const selectedClass = ["text-purple-700"];
     tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         const selected = tab.getAttribute("data-tab");
@@ -96,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         const itemToSave = getFormData();
         if (!validateForm(itemToSave)) return;
-        const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+        const data = (await getValueFromStorage(TRAPS)) ?? [];
         const index = data.findIndex((i) => i.id === itemToSave.id);
         if (index !== -1) {
           // update if id already exists
@@ -105,12 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
           // add if id does not exist
           data.push({ ...itemToSave, id: generateId() });
         }
-        await setValueInStorage(INTERCEPTS, data);
+        await setValueInStorage(TRAPS, data);
         trapForm.reset();
         fillWebSiteInput();
         tabs[0].click();
         printTraps();
-        setValueInStorage(TEMPORAL_DATA, {});
+        setValueInStorage(FORM_DRAFT, {});
       } catch (e) {
         console.error(e);
       }
@@ -150,26 +152,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function activeSaveDraft() {
     // obtener datos en borrador
-    getValueFromStorage(TEMPORAL_DATA).then((data = {}) => {
+    getValueFromStorage(FORM_DRAFT).then((data = {}) => {
       fillForm(data);
     });
     // Escuchar cambios en los inputs y guardar en borrador
     const inputs = document.querySelectorAll(".control");
     inputs.forEach((input) => {
       input.addEventListener("input", () => {
-        setValueInStorage(TEMPORAL_DATA, getFormData());
+        setValueInStorage(FORM_DRAFT, getFormData());
       });
     });
   }
 
   async function toggleEnableTrap(selectedItem) {
-    const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+    const data = (await getValueFromStorage(TRAPS)) ?? [];
     const newData = data.map((item) =>
       item.id === selectedItem.id
         ? { ...item, active: !selectedItem.active }
         : item
     );
-    await setValueInStorage(INTERCEPTS, newData);
+    await setValueInStorage(TRAPS, newData);
     printTraps();
   }
 
@@ -179,15 +181,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function deleteTrap(selectedItem) {
-    const data = (await getValueFromStorage(INTERCEPTS)) ?? [];
+    const data = (await getValueFromStorage(TRAPS)) ?? [];
     const newData = data.filter((item) => item.id !== selectedItem.id);
-    await setValueInStorage(INTERCEPTS, newData);
+    await setValueInStorage(TRAPS, newData);
     printTraps();
   }
 
   async function printTraps() {
-    const data = ((await getValueFromStorage(INTERCEPTS)) || []).toSorted(
-      (a, b) => (a.name < b.name ? -1 : 1)
+    const data = ((await getValueFromStorage(TRAPS)) || []).toSorted((a, b) =>
+      a.name < b.name ? -1 : 1
     );
     trapsList.innerHTML = "";
     if (data.length === 0) {
@@ -276,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .getElementById("exportBugs")
       .addEventListener("click", async () => {
         try {
-          const data = (await getValueFromStorage(INTERCEPTS)) || [];
+          const data = (await getValueFromStorage(TRAPS)) || [];
           const newDataToExport = data.map((item) => ({
             ...item,
             id: undefined,
@@ -307,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!file) return;
             const content = await file.text();
             const uploadedData = JSON.parse(content);
-            const prevData = (await getValueFromStorage(INTERCEPTS)) || [];
+            const prevData = (await getValueFromStorage(TRAPS)) || [];
             const newDataToSave = [...prevData, ...uploadedData].map(
               (item) => ({
                 ...item,
@@ -315,10 +317,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 active: false,
               })
             );
-            await setValueInStorage(INTERCEPTS, newDataToSave);
+            await setValueInStorage(TRAPS, newDataToSave);
             tabs[0].click();
             printTraps();
-            setValueInStorage(TEMPORAL_DATA, {});
+            setValueInStorage(FORM_DRAFT, {});
             chrome.tabs?.reload?.();
           } catch (e) {
             console.error(e);
@@ -337,6 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function createSpyElement(item) {
+    const webSite = createElement("p").text(`🌐 ${item.webSite}`);
     const method = createElement("span").text(item.method);
     const prettyResponse = JSON.stringify(item.response, null, 2);
     const requestInfo = createElement("details").children([
@@ -348,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .attrs({
         class: item.statusCode < 400 ? "text-green-600" : "text-red-600",
       });
-    const toggleBtn = createElement("button")
+    const createTrapBtn = createElement("button")
       .text("Crear trampa")
       .attrs({
         class: "px-2 py-1 text-white rounded-md bg-green-700",
@@ -359,11 +362,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const actions = createElement("div")
       .attrs({ class: "ml-auto space-x-2" })
-      .children([toggleBtn]);
+      .children([createTrapBtn]);
 
     const itemEl = createElement("div")
       .attrs({ class: "border-b border-purple-300 p-2" })
       .children([
+        webSite,
         createElement("div")
           .attrs({ class: "flex items-center gap-1" })
           .children([method, "-", statusCode, actions]),
@@ -399,6 +403,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // COOMING SOON
+  // function activeToggleSpy() {
+  //   toggleSpiesBtn.addEventListener("click", () => {
+  //     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+  //       const currentTab = tabs[0];
+  //       const tabsToSpy = (await getValueFromSession(RUN_SPY_TABS)) ?? [];
+  //       if (!tabsToSpy.includes(currentTab.url)) {
+  //         tabsToSpy.push(currentTab.url);
+  //       }
+  //       setValueToSession(RUN_SPY_TABS, tabsToSpy);
+  //     });
+  //   });
+  // }
+
   function activeClearRequestsSpies() {
     clearRequestsSpiesBtn.addEventListener("click", () => {
       setValueToSession(REQUEST_SPIES, []);
@@ -407,9 +425,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function sendSpyToTrapForm(data) {
+    trapForm.reset();
+    fillWebSiteInput();
     fillForm({
       url: data.url,
       method: data.method,
+      webSite: data.webSite,
       response: data.response,
       statusCode: data.statusCode,
     });

@@ -1,76 +1,88 @@
-import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
+import { urlMatchesPattern, onMessage, sendMessage, isValidJSON } from "./helpers.js";
+
+let savedTraps = [];
+const originalFetch = window.fetch;
+const axios = window.axios;
+const originalOpen = XMLHttpRequest.prototype.open;
+const originalSend = XMLHttpRequest.prototype.send;
+
+// REQUEST SPY QUEUE
+let requestQueue = [];
+let isProcessing = false;
+const intervalMs = 1000;
+
+function getCurrentWebSite() {
+  return window.location.origin;
+}
+
+function findTrap(url, method = "GET") {
+  const matched = savedTraps.find((item) => {
+    try {
+      const isSameSite = item.webSite === getCurrentWebSite();
+      const isSameMethod = item.method.toUpperCase() === method.toUpperCase();
+      if (!item.active || !isSameMethod || !isSameSite)
+        return false;
+      const hasMatch = urlMatchesPattern(url, item.url);
+      return hasMatch;
+    } catch (e) {
+      console.error("Lucy error in findIntercept", e);
+      return false;
+    }
+  });
+  return matched;
+}
+
+function processQueue() {
+  if (requestQueue.length === 0) {
+    isProcessing = false;
+    return;
+  }
+  isProcessing = true;
+  const data = requestQueue.shift();
+  sendMessage("ON_REQUEST_SPY", JSON.stringify(data));
+  setTimeout(processQueue, intervalMs);
+}
+function sendRequestSpy(data) {
+  data.webSite = getCurrentWebSite();
+  if (!data.url || !data.method) return;
+  requestQueue.push(data);
+  requestQueue = requestQueue.slice(0, 30);
+  if (!isProcessing) {
+    processQueue();
+  }
+}
+
+function logCatch(type, trap) {
+  console.log(
+    `Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`,
+    trap.method,
+    trap.url,
+    trap.response
+  );
+  sendMessage("ON_BUG_CATCH");
+}
+
 (function () {
-  sendMessage("GET_INTERCEPTS_ASK");
-  onMessage("INTERCEPTS_CHANGED", (savedTraps = []) => {
+  sendMessage("GET_TRAPS_ASK");
+  onMessage("TRAPS_UPDATED", (newData = []) => {
+    savedTraps = newData;
+
     // const shouldRunInThisTab = savedTraps.some(
-    //   (item) => item.webSite === window.location.origin && item.active
+    //   (item) => item.webSite === getCurrentWebSite() && item.active
     // );
 
-    // if (window.__hasLucyTraps === undefined && !shouldRunInThisTab) {
+    // if (!shouldRunInThisTab) {
+    //   window.fetch = originalFetch;
+    //   window.XMLHttpRequest.prototype.open = originalOpen;
+    //   window.XMLHttpRequest.prototype.send = originalSend;
+    //   if (axios) {
+    //     window.axios = axios;
+    //   }
     //   return;
     // }
-
-    // if (window.__hasLucyTraps === true && !shouldRunInThisTab) {
-    //   window.location.reload();
-    //   return;
-    // }
-
-    // if (!shouldRunInThisTab) return;
-
-    function findTrap(url, method = "GET") {
-      return savedTraps.find((item) => {
-        try {
-          if (
-            !item.active ||
-            item.method.toUpperCase() !== method.toUpperCase()
-          )
-            return false;
-          const hasMatch = urlMatchesPattern(url, item.url);
-          return hasMatch;
-        } catch (e) {
-          console.error("Error in findIntercept", e);
-          return false;
-        }
-      });
-    }
-
-    function logCatch(type, trap) {
-      console.log(
-        `Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`,
-        trap.method,
-        trap.url,
-        trap.response
-      );
-      sendMessage("ON_BUG_CATCH");
-    }
-
-    // REQUEST SPY QUEUE
-    let requestQueue = [];
-    let isProcessing = false;
-    const intervalMs = 1000;
-    function processQueue() {
-      if (requestQueue.length === 0) {
-        isProcessing = false;
-        return;
-      }
-      isProcessing = true;
-      const data = requestQueue.shift();
-      sendMessage("ON_REQUEST_SPY", JSON.stringify(data));
-      setTimeout(processQueue, intervalMs);
-    }
-    function sendRequestSpy(data) {
-      if (!data.url || !data.method) return;
-      requestQueue.push(data);
-      requestQueue = requestQueue.slice(0, 30);
-      if (!isProcessing) {
-        processQueue();
-      }
-    }
 
     // TRAPS
-
     // Interceptar Fetch
-    const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       try {
         const [input, rest] = args;
@@ -105,13 +117,12 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           },
         });
       } catch (e) {
-        console.error("Error in fetch", e);
+        console.error("Lucy error in fetch", e);
         return originalFetch(...args);
       }
     };
 
     // Interceptar Axios
-    const axios = window.axios;
     if (axios) {
       // Add a request interceptor
       axios.interceptors.request.use(
@@ -123,11 +134,11 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
             logCatch("axios", matched);
             return Promise.reject({
               __isIntercepted: true,
-              intercept: matched,
+              trap: matched,
               config,
             });
           } catch (e) {
-            console.error("Error in axios", e);
+            console.error("Lucy error in axios", e);
             return config;
           }
         },
@@ -156,6 +167,8 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           // Any status codes that falls outside the range of 2xx cause this function to trigger
           try {
             if (!error.__isIntercepted) {
+              console.log("Error in axios", error);
+              
               sendRequestSpy({
                 url: error.config.url,
                 method: error.config.method?.toUpperCase?.(),
@@ -165,8 +178,8 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
               return Promise.reject(error);
             }
             const data = {
-              data: error.intercept.response ?? {},
-              status: Number(error.intercept.statusCode),
+              data: error.trap.response ?? {},
+              status: Number(error.trap.statusCode),
               config: error.config,
               headers: {
                 "Content-Type": "application/json",
@@ -178,7 +191,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
             }
             return Promise.resolve(data);
           } catch (e) {
-            console.error("Error in axios", e);
+            console.error("Lucy error in axios", e);
             return Promise.reject(error);
           }
         }
@@ -186,11 +199,8 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
     }
 
     // Interceptar XHR
-    const originalOpen = XMLHttpRequest.prototype.open;
-    const originalSend = XMLHttpRequest.prototype.send;
-
     XMLHttpRequest.prototype.open = function (method, url) {
-      this.__interceptedBug = findTrap(url, method);
+      this.__trap = findTrap(url, method);
       this.__method = method;
       this.__url = url;
       return originalOpen.apply(this, arguments);
@@ -198,16 +208,16 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 
     XMLHttpRequest.prototype.send = function (...args) {
       try {
-        const intercepted = this.__interceptedBug;
+        const trap = this.__trap;
 
-        if (!intercepted) {
+        if (!trap) {
           this.addEventListener("loadend", () => {
             if (this.responseType === "" || this.responseType === "text") {
               sendRequestSpy({
                 url: this.__url,
                 method: this.__method,
                 statusCode: this.status,
-                response:  JSON.parse(this.responseText),
+                response: isValidJSON(this.responseText) ? JSON.parse(this.responseText): this.responseText,
               });
             }
           });
@@ -222,28 +232,28 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           });
           Object.defineProperty(this, "status", {
             configurable: true,
-            value: Number(intercepted.statusCode),
+            value: Number(trap.statusCode),
           });
 
           if (this.responseType === "" || this.responseType === "text") {
             Object.defineProperty(this, "responseText", {
               configurable: true,
-              value: intercepted.response,
+              value: trap.response,
             });
             Object.defineProperty(this, "response", {
               configurable: true,
-              value: intercepted.response,
+              value: trap.response,
             });
           }
 
-          logCatch("xhr", intercepted);
+          logCatch("xhr", trap);
 
           this.onreadystatechange?.();
           this.onload?.();
           this.onloadend?.();
         }, 0);
       } catch (e) {
-        console.error("Error in xhr", e);
+        console.error("Lucy error in xhr", e);
         return originalSend.apply(this, args);
       }
     };
