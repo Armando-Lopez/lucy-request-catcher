@@ -2,20 +2,20 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 (function () {
   sendMessage("GET_INTERCEPTS_ASK");
   onMessage("INTERCEPTS_CHANGED", (savedTraps = []) => {
-    const shouldRunInThisTab = savedTraps.some(
-      (item) => item.webSite === window.location.origin && item.active
-    );
+    // const shouldRunInThisTab = savedTraps.some(
+    //   (item) => item.webSite === window.location.origin && item.active
+    // );
 
-    if (window.__hasLucyTraps === undefined && !shouldRunInThisTab) {
-      return;
-    }
+    // if (window.__hasLucyTraps === undefined && !shouldRunInThisTab) {
+    //   return;
+    // }
 
-    if (window.__hasLucyTraps === true && !shouldRunInThisTab) {
-      window.location.reload();
-      return;
-    }
+    // if (window.__hasLucyTraps === true && !shouldRunInThisTab) {
+    //   window.location.reload();
+    //   return;
+    // }
 
-    if (!shouldRunInThisTab) return;
+    // if (!shouldRunInThisTab) return;
 
     function findTrap(url, method = "GET") {
       return savedTraps.find((item) => {
@@ -44,6 +44,31 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
       sendMessage("ON_BUG_CATCH");
     }
 
+    // REQUEST SPY QUEUE
+    let requestQueue = [];
+    let isProcessing = false;
+    const intervalMs = 1000;
+    function processQueue() {
+      if (requestQueue.length === 0) {
+        isProcessing = false;
+        return;
+      }
+      isProcessing = true;
+      const data = requestQueue.shift();
+      sendMessage("ON_REQUEST_SPY", JSON.stringify(data));
+      setTimeout(processQueue, intervalMs);
+    }
+    function sendRequestSpy(data) {
+      if (!data.url || !data.method) return;
+      requestQueue.push(data);
+      requestQueue = requestQueue.slice(0, 30);
+      if (!isProcessing) {
+        processQueue();
+      }
+    }
+
+    // TRAPS
+
     // Interceptar Fetch
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
@@ -55,12 +80,26 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
         const method = input?.method ?? rest?.method;
         const matched = findTrap(url, method);
         if (!matched) {
-          return originalFetch(...args);
+          const originalResponse = await originalFetch(...args);
+          const responseClone = originalResponse.clone();
+          const isJSON = responseClone.headers
+            .get("Content-Type")
+            .includes("application/json");
+
+          if (isJSON) {
+            sendRequestSpy({
+              url,
+              method: method?.toUpperCase?.(),
+              statusCode: originalResponse.status,
+              response: await responseClone.json(),
+            });
+          }
+          return originalResponse;
         }
         const data = JSON.stringify(matched.response ?? {});
         logCatch("fetch", matched);
         return new Response(data, {
-          status: Number(matched.responseCode),
+          status: Number(matched.statusCode),
           headers: {
             "Content-Type": "application/json",
           },
@@ -99,6 +138,17 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
 
       axios.interceptors.response.use(
         function (response) {
+          if (
+            response.request.responseType === "" ||
+            response.request.responseType === "text"
+          ) {
+            sendRequestSpy({
+              url: response.config.url,
+              method: response.config.method?.toUpperCase?.(),
+              statusCode: response.status,
+              response: response.data,
+            });
+          }
           // Any status code that lie within the range of 2xx cause this function to trigger
           return response;
         },
@@ -106,13 +156,18 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           // Any status codes that falls outside the range of 2xx cause this function to trigger
           try {
             if (!error.__isIntercepted) {
+              sendRequestSpy({
+                url: error.config.url,
+                method: error.config.method?.toUpperCase?.(),
+                statusCode: error.status,
+                response: error.response.data,
+              });
               return Promise.reject(error);
             }
             const data = {
               data: error.intercept.response ?? {},
-              status: Number(error.intercept.responseCode),
+              status: Number(error.intercept.statusCode),
               config: error.config,
-              statusText: "",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -146,6 +201,16 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
         const intercepted = this.__interceptedBug;
 
         if (!intercepted) {
+          this.addEventListener("loadend", () => {
+            if (this.responseType === "" || this.responseType === "text") {
+              sendRequestSpy({
+                url: this.__url,
+                method: this.__method,
+                statusCode: this.status,
+                response:  JSON.parse(this.responseText),
+              });
+            }
+          });
           return originalSend.apply(this, args);
         }
 
@@ -157,7 +222,7 @@ import { urlMatchesPattern, onMessage, sendMessage } from "./helpers.js";
           });
           Object.defineProperty(this, "status", {
             configurable: true,
-            value: Number(intercepted.responseCode),
+            value: Number(intercepted.statusCode),
           });
 
           if (this.responseType === "" || this.responseType === "text") {

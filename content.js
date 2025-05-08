@@ -21,7 +21,11 @@ chrome.storage.onChanged.addListener(async () => {
 });
 
 onMessage("ON_BUG_CATCH", () => {
-  chrome.runtime.sendMessage("BLINK_CATCH_BADGE");
+  chrome.runtime.sendMessage({ action: "BLINK_CATCH_BADGE" });
+});
+
+onMessage("ON_REQUEST_SPY", (data) => {
+  chrome.runtime.sendMessage({ action: "SAVE_REQUEST_SPY", data });
 });
 
 // Helpers duplicados porque este archivo no tiene acceso al resto del código

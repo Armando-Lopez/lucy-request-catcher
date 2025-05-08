@@ -4,7 +4,7 @@
     "webSite": "https://jsonplaceholder.typicode.com",
     "method": "GET",
     "url": "https://jsonplaceholder.typicode.com/users/1",
-    "responseCode": 200,
+    "statusCode": 200,
     "response": {
       "id": 1,
       "name": "Leanne Graham",
@@ -18,7 +18,7 @@
     "webSite": "https://jsonplaceholder.typicode.com",
     "method": "POST",
     "url": "https://jsonplaceholder.typicode.com/posts",
-    "responseCode": 201,
+    "statusCode": 201,
     "response": {
       "userId": 1,
       "id": 1,
@@ -31,7 +31,7 @@
     "webSite": "https://jsonplaceholder.typicode.com",
     "method": "GET",
     "url": "https://jsonplaceholder.typicode.com/users/555",
-    "responseCode": 404,
+    "statusCode": 404,
     "response": {
       "message": "Not Found"
     }

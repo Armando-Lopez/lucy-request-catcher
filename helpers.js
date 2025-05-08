@@ -16,6 +16,21 @@ export function setValueInStorage(key, value) {
   });
 }
 
+export function getValueFromSession(key) {
+  return new Promise((resolve) => {
+    chrome.storage.session.get(key, (result) => {
+      resolve(result[key] ? JSON.parse(result[key]) : undefined);
+    });
+  });
+}
+export function setValueToSession(key, value) {
+  return new Promise((resolve) => {
+    chrome.storage.session.set({ [key]: JSON.stringify(value) }, () => {
+      resolve();
+    });
+  });
+}
+
 export function urlMatchesPattern(url, pattern) {
   if (url === pattern) return true;
   const regexStr = pattern.replaceAll("{id}", "\\d+");

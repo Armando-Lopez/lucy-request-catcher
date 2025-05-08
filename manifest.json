@@ -3,7 +3,7 @@
   "name": "Lucy - Request catcher",
   "version": "1.0.1",
   "description": "Lucy es una araña que vive en tu navegador, tejiendo telarañas y capturando peticiones HTTP",
-  "permissions": ["scripting", "storage", "webRequest"],
+  "permissions": ["scripting", "storage", "webRequest", "tabs", "activeTab"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
