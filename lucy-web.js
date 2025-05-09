@@ -1,4 +1,9 @@
-import { urlMatchesPattern, onMessage, sendMessage, isValidJSON } from "./helpers.js";
+import {
+  urlMatchesPattern,
+  onMessage,
+  sendMessage,
+  isValidJSON,
+} from "./helpers.js";
 
 let savedTraps = [];
 const originalFetch = window.fetch;
@@ -20,8 +25,7 @@ function findTrap(url, method = "GET") {
     try {
       const isSameSite = item.webSite === getCurrentWebSite();
       const isSameMethod = item.method.toUpperCase() === method.toUpperCase();
-      if (!item.active || !isSameMethod || !isSameSite)
-        return false;
+      if (!item.active || !isSameMethod || !isSameSite) return false;
       const hasMatch = urlMatchesPattern(url, item.url);
       return hasMatch;
     } catch (e) {
@@ -95,8 +99,8 @@ function logCatch(type, trap) {
           const originalResponse = await originalFetch(...args);
           const responseClone = originalResponse.clone();
           const isJSON = responseClone.headers
-            .get("Content-Type")
-            .includes("application/json");
+            ?.get("Content-Type")
+            ?.includes("application/json");
 
           if (isJSON) {
             sendRequestSpy({
@@ -168,7 +172,7 @@ function logCatch(type, trap) {
           try {
             if (!error.__isIntercepted) {
               console.log("Error in axios", error);
-              
+
               sendRequestSpy({
                 url: error.config.url,
                 method: error.config.method?.toUpperCase?.(),
@@ -217,7 +221,9 @@ function logCatch(type, trap) {
                 url: this.__url,
                 method: this.__method,
                 statusCode: this.status,
-                response: isValidJSON(this.responseText) ? JSON.parse(this.responseText): this.responseText,
+                response: isValidJSON(this.responseText)
+                  ? JSON.parse(this.responseText)
+                  : this.responseText,
               });
             }
           });
