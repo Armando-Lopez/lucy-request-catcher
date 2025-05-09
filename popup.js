@@ -7,7 +7,7 @@ import {
   setValueToSession,
   getValueFromStorage,
   getValueFromSession,
-} from "./helpers.js";
+} from "./helpers/helpers.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const tabs = document.querySelectorAll(".tab-btn");

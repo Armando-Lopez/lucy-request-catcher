@@ -3,7 +3,7 @@ import {
   onMessage,
   sendMessage,
   isValidJSON,
-} from "./helpers.js";
+} from "./helpers/helpers.js";
 
 let savedTraps = [];
 const originalFetch = window.fetch;
