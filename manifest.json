@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Lucy - Request catcher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lucy es una araña que vive en tu navegador, tejiendo telarañas y capturando peticiones HTTP",
   "permissions": ["scripting", "storage", "tabs", "activeTab"],
   "background": {

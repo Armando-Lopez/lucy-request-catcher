@@ -56,11 +56,16 @@ function sendRequestSpy(data) {
   }
 }
 
-function logCatch(type, trap) {
+function logCatch(type, trap, payload = "") {
   console.log(
     `Lucy ha capturado un bicho ${type}: 🕷️🕸️🐞`,
     trap.method,
     trap.url,
+    "\n",
+    "payload: ",
+    isValidJSON(payload) && JSON.parse(payload),
+    "\n",
+    "response: ",
     trap.response
   );
   sendMessage("ON_BUG_CATCH");
@@ -113,7 +118,7 @@ function logCatch(type, trap) {
           return originalResponse;
         }
         const data = JSON.stringify(matched.response ?? {});
-        logCatch("fetch", matched);
+        logCatch("fetch", matched, args[1]?.body);
         return new Response(data, {
           status: Number(matched.statusCode),
           headers: {
@@ -135,7 +140,6 @@ function logCatch(type, trap) {
             if (!config.url) return config;
             const matched = findTrap(config.url, config.method);
             if (!matched) return config;
-            logCatch("axios", matched);
             return Promise.reject({
               __isIntercepted: true,
               trap: matched,
@@ -171,8 +175,6 @@ function logCatch(type, trap) {
           // Any status codes that falls outside the range of 2xx cause this function to trigger
           try {
             if (!error.__isIntercepted) {
-              console.log("Error in axios", error);
-
               sendRequestSpy({
                 url: error.config.url,
                 method: error.config.method?.toUpperCase?.(),
@@ -190,6 +192,7 @@ function logCatch(type, trap) {
               },
             };
             const hasErrorCode = data.status >= 400;
+            logCatch("axios", error.trap, JSON.stringify(error.config.data));
             if (hasErrorCode) {
               return Promise.reject(data);
             }
@@ -252,7 +255,7 @@ function logCatch(type, trap) {
             });
           }
 
-          logCatch("xhr", trap);
+          logCatch("xhr", trap, args[0]);
 
           this.onreadystatechange?.();
           this.onload?.();
