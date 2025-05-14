@@ -8,15 +8,19 @@ import {
   getValueFromStorage,
   getValueFromSession,
 } from "./helpers/helpers.js";
-import { registerTabsComponent } from "/components/tabs/tabs.js";
-import { registerAboutComponent } from "/components/about/about.js";
-import { registerTrapsComponent } from "/components/traps/traps.js";
-import { registerOptionsComponent } from "/components/options/options.js";
+import { registerComponent } from "./lib/lucy-framework.js";
 
-registerTabsComponent();
-registerAboutComponent();
-registerTrapsComponent();
-registerOptionsComponent();
+import { tabsComponent } from "./components/tabs/tabs.js";
+import { aboutComponent } from "./components/about/about.js";
+import { optionsComponent } from "./components/options/options.js";
+import { trapItemComponent, trapsComponent } from "./components/traps/traps.js";
+
+registerComponent("tabs-component", tabsComponent)
+registerComponent("about-component", aboutComponent)
+registerComponent("options-component", optionsComponent)
+//
+registerComponent("traps-component", trapsComponent)
+registerComponent("trap-item-component", trapItemComponent)
 
 
 document.addEventListener("DOMContentLoaded", () => {

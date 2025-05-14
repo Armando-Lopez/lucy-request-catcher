@@ -9,36 +9,31 @@ const tabsClass = [
 ];
 const selectedClass = ["text-purple-700"];
 
-export function registerTabsComponent() {
-  createComponent({
-    name: "tabs-component",
-    template: html`<div>
-      <slot></slot>
-    </div>`,
-    onMounted() {
-      const tabs = this.querySelectorAll("[data-tab]");
-      const tabContents = this.querySelectorAll(".tab-content");
-      const tabsContainer = this.querySelector("#tabs-container");
-      tabs.forEach((tab) => {
+export const tabsComponent = createComponent({
+  template: html`<div>
+    <slot></slot>
+  </div>`,
+  onMounted() {
+    const tabs = this.querySelectorAll("[data-tab]");
+    const tabContents = this.querySelectorAll(".tab-content");
+    const tabsContainer = this.querySelector("#tabs-container");
+    tabs.forEach((tab) => {
+      tab.classList.add(...tabsClass);
+      tab.addEventListener("click", () => {
+        // chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
 
-        tab.classList.add(...tabsClass);
-        tab.addEventListener("click", () => {
-          
-          // chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") });
+        const selected = tab.getAttribute("data-tab");
 
-          const selected = tab.getAttribute("data-tab");
+        // Remove active classes
+        tabs.forEach((t) => t.classList.remove(...selectedClass));
+        tabContents.forEach((c) => c.classList.add("hidden"));
 
-          // Remove active classes
-          tabs.forEach((t) => t.classList.remove(...selectedClass));
-          tabContents.forEach((c) => c.classList.add("hidden"));
-
-          // Add active class
-          tab.classList.add(...selectedClass);
-          document.getElementById(selected).classList.remove("hidden");
-          tabsContainer.scrollTo(0, 0);
-        });
+        // Add active class
+        tab.classList.add(...selectedClass);
+        document.getElementById(selected).classList.remove("hidden");
+        tabsContainer.scrollTo(0, 0);
       });
-      tabs[0].click();
-    },
-  });
-}
+    });
+    tabs[0].click();
+  },
+});
