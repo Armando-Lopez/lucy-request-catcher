@@ -8,12 +8,25 @@ import {
   getValueFromStorage,
   getValueFromSession,
 } from "./helpers/helpers.js";
+import { registerTabsComponent } from "/components/tabs/tabs.js";
+import { registerAboutComponent } from "/components/about/about.js";
+import { registerTrapsComponent } from "/components/traps/traps.js";
+import { registerOptionsComponent } from "/components/options/options.js";
+
+registerTabsComponent();
+registerAboutComponent();
+registerTrapsComponent();
+registerOptionsComponent();
+
 
 document.addEventListener("DOMContentLoaded", () => {
-  const tabs = document.querySelectorAll(".tab-btn");
-  const trapsList = document.getElementById("traps-list");
-  const tabContents = document.querySelectorAll(".tab-content");
-  const tabsContainer = document.getElementById("tabs-container");
+  // const tabs = document.querySelectorAll(".tab-btn");
+  // const trapsList = document.getElementById("traps-list");
+  // const tabContents = document.querySelectorAll(".tab-content");
+  // const tabsContainer = document.getElementById("tabs-container");
+  // activeTabs();
+
+  return;
 
   const trapForm = document.getElementById("trap-form");
 
@@ -34,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
     PATCH: "🐞",
   };
 
-  activeTabs();
   printTraps();
   activeSaveForm();
   activeSaveDraft();

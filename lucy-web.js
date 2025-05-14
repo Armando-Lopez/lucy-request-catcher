@@ -29,7 +29,7 @@ function findTrap(url, method = "GET") {
       const hasMatch = urlMatchesPattern(url, item.url);
       return hasMatch;
     } catch (e) {
-      console.error("Lucy error in findIntercept", e);
+      console.warn("Controlado: Lucy error in findIntercept", e);
       return false;
     }
   });
@@ -47,6 +47,7 @@ function processQueue() {
   setTimeout(processQueue, intervalMs);
 }
 function sendRequestSpy(data) {
+  return;
   data.webSite = getCurrentWebSite();
   if (!data.url || !data.method) return;
   requestQueue.push(data);
@@ -126,7 +127,7 @@ function logCatch(type, trap, payload = "") {
           },
         });
       } catch (e) {
-        console.error("Lucy error in fetch", e);
+        console.warn("Controlado: Lucy error in fetch", e);
         return originalFetch(...args);
       }
     };
@@ -146,7 +147,7 @@ function logCatch(type, trap, payload = "") {
               config,
             });
           } catch (e) {
-            console.error("Lucy error in axios", e);
+            console.warn("Controlado: Lucy error in axios", e);
             return config;
           }
         },
@@ -157,16 +158,20 @@ function logCatch(type, trap, payload = "") {
 
       axios.interceptors.response.use(
         function (response) {
-          if (
-            response.request.responseType === "" ||
-            response.request.responseType === "text"
-          ) {
-            sendRequestSpy({
-              url: response.config.url,
-              method: response.config.method?.toUpperCase?.(),
-              statusCode: response.status,
-              response: response.data,
-            });
+          try {
+            if (
+              response.request.responseType === "" ||
+              response.request.responseType === "text"
+            ) {
+              sendRequestSpy({
+                url: response.config.url,
+                method: response.config.method?.toUpperCase?.(),
+                statusCode: response.status,
+                response: response.data,
+              });
+            }
+          } catch (e) {
+            console.warn("Controlado: Lucy error in axios", e);
           }
           // Any status code that lie within the range of 2xx cause this function to trigger
           return response;
@@ -198,7 +203,7 @@ function logCatch(type, trap, payload = "") {
             }
             return Promise.resolve(data);
           } catch (e) {
-            console.error("Lucy error in axios", e);
+            console.warn("Controlado: Lucy error in axios", e);
             return Promise.reject(error);
           }
         }
@@ -262,7 +267,7 @@ function logCatch(type, trap, payload = "") {
           this.onloadend?.();
         }, 0);
       } catch (e) {
-        console.error("Lucy error in xhr", e);
+        console.warn("Controlado: Lucy error in xhr", e);
         return originalSend.apply(this, args);
       }
     };
