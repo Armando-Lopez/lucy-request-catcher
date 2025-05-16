@@ -34,6 +34,6 @@ export const tabsComponent = createComponent({
         tabsContainer.scrollTo(0, 0);
       });
     });
-    tabs[0].click();
+    tabs[1].click();
   },
 });

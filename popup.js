@@ -13,15 +13,16 @@ import { registerComponent } from "./lib/lucy-framework.js";
 import { tabsComponent } from "./components/tabs/tabs.js";
 import { aboutComponent } from "./components/about/about.js";
 import { optionsComponent } from "./components/options/options.js";
+import { trapForm } from "./components/trap-form/trap-form.js";
 import { trapItemComponent, trapsComponent } from "./components/traps/traps.js";
 
 registerComponent("tabs-component", tabsComponent)
 registerComponent("about-component", aboutComponent)
 registerComponent("options-component", optionsComponent)
 //
+registerComponent("trap-form", trapForm)
 registerComponent("traps-component", trapsComponent)
 registerComponent("trap-item-component", trapItemComponent)
-
 
 document.addEventListener("DOMContentLoaded", () => {
   // const tabs = document.querySelectorAll(".tab-btn");

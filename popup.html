@@ -30,100 +30,12 @@
           <button data-tab="tab5">Acerca</button>
         </div>
         <div id="tabs-container" class="flex-1 overflow-y-auto px-5 pt-3 mb-1">
-          <!-- Contenido de la pestaña Telaraña -->
           <div class="tab-content h-full" id="tab1">
             <traps-component></traps-component>
           </div>
-          <!-- Contenido de la pestaña Nuevo/Editar -->
           <div class="tab-content h-full hidden" id="tab2">
-            <form id="trap-form" class="grid gap-4" autocomplete="off">
-              <input type="text" name="id" id="id" hidden />
-              <input type="checkbox" name="active" id="active" hidden />
-              <div class="w-full">
-                <label for="name">📝 Nombre de la regla</label>
-                <input
-                  class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  type="text"
-                  id="name"
-                  name="name"
-                  placeholder="Mi intercept de usuario"
-                  required
-                />
-              </div>
-              <div class="w-full">
-                <label for="name">🌐 Sitio web</label>
-                <input
-                  class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  type="text"
-                  id="webSite"
-                  name="webSite"
-                  placeholder="https://ejemplo.com"
-                  required
-                />
-              </div>
-              <div class="w-full">
-                <label for="url">🐞 URL a atrapar</label>
-                <input
-                  class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  type="text"
-                  id="url"
-                  name="url"
-                  placeholder="https://api.ejemplo.com/api/user/{id}"
-                  required
-                />
-              </div>
-              <div class="flex flex-wrap gap-5">
-                <div class="grid">
-                  <label for="method">📬 Método HTTP</label>
-                  <select
-                    id="method"
-                    name="method"
-                    required
-                    class="control rounded-md border border-gray-300 bg-white p-2 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                  >
-                    <option selected value="" disabled>Seleciona</option>
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="PATCH">PATCH</option>
-                  </select>
-                </div>
-                <div class="grid">
-                  <label for="statusCode">🎯 Código de Respuesta</label>
-                  <input
-                    class="control w-24 rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                    type="number"
-                    id="statusCode"
-                    name="statusCode"
-                    placeholder="200"
-                    required
-                  />
-                </div>
-              </div>
-              <div class="w-full">
-                <label for="response">🪡 JSON de Respuesta (opcional)</label>
-                <textarea
-                  id="response"
-                  name="response"
-                  rows="5"
-                  placeholder='{"id": 1, "name": "Lucy"}'
-                  class="control w-full rounded-md border border-gray-300 px-4 py-2 placeholder-gray-400 shadow-sm focus:border-transparent focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                ></textarea>
-              </div>
-              <div
-                class="sticky bottom-0 py-2 px-4 w-full flex justify-end bg-white border-t border-purple-300"
-              >
-                <button
-                  type="submit"
-                  class="block w-fit rounded-md bg-purple-500 p-2 px-4 text-white hover:bg-purple-600"
-                >
-                  Guardar
-                </button>
-              </div>
-            </form>
+            <trap-form></trap-form>
           </div>
-          <!-- Contenido de la pestaña Espiar -->
           <div class="tab-content h-full hidden" id="tab3">
             <div class="h-full flex flex-col gap-4">
               <div class="flex justify-between items-center px-2">
@@ -151,11 +63,9 @@
               <!-- <div class="h-full space-y-4"></div> -->
             </div>
           </div>
-          <!-- Contenido de la pestaña Opciones -->
           <div class="tab-content h-full hidden" id="tab4">
             <options-component></options-component>
           </div>
-          <!-- Contenido de la pestaña Acerca -->
           <div class="tab-content h-full hidden space-y-4" id="tab5">
             <about-component></about-component>
           </div>
